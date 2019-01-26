@@ -1,5 +1,7 @@
 package com.care.ssm.handlers
 
+import java.util
+
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
@@ -7,19 +9,22 @@ import org.xml.sax.helpers.DefaultHandler
   * Ci sono due possibilità dato un tag da ricercare:
   * - si cerca un attributo
   * - si cerca il contenuto del tag
+  *
   * @param targetTag
   * @param targetAttribute
+  * @param occurrence <0 all valus
   */
-class BaseDocumentHandler(targetTag: String, targetAttribute: String = "") extends DefaultHandler{
+class BaseDocumentHandler(targetTag: String, targetAttribute: String = "", occurrence: Int = -1) extends DefaultHandler{
 
-  var result = ""
+  var result = new util.ArrayList[String]
   var targetTagStarted = false
   var targetTagEnded = false
   var wordDone = false
 
+
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
 
-    if(wordDone) return
+    if(workDone) return
 
     if(qName.equals(targetTag)){
       //Starting event of target tag
@@ -29,8 +34,7 @@ class BaseDocumentHandler(targetTag: String, targetAttribute: String = "") exten
 
       if(isAttributeRequired) {
         //Attribute extraction
-        result = attributes.getValue(targetAttribute)
-        wordDone = true
+        result.add(attributes.getValue(targetAttribute))
       } else {
         //the result is the text within the tag
       }
@@ -39,12 +43,11 @@ class BaseDocumentHandler(targetTag: String, targetAttribute: String = "") exten
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {
 
-    if (wordDone) return
+    if (workDone) return
 
     if (qName.equals(targetTag)) {
       //Closing event of target tag
       println(s"End event of element: $qName")
-      wordDone = true
     }
   }
 
@@ -52,15 +55,21 @@ class BaseDocumentHandler(targetTag: String, targetAttribute: String = "") exten
   override def characters(ch: Array[Char], start: Int, length: Int): Unit = {
 
       if(!isAttributeRequired && targetTagStarted && !targetTagEnded) {
-        result = new String(ch, start, length)
+        result.add(new String(ch, start, length))
       }
+  }
+
+  private def workDone: Boolean = {
+    //negative occurrence -> all values
+    //[0,[ -> the corresponding value(s)
+    occurrence>0 && result.size==occurrence
   }
 
   private def isAttributeRequired: Boolean = {
     targetAttribute!=null && !targetAttribute.trim.isEmpty
   }
 
-  def getResult(): String ={
+  def getResult(): util.ArrayList[String] ={
     result
   }
 }
