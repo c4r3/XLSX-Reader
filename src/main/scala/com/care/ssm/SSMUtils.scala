@@ -26,9 +26,8 @@ object SSMUtils {
     var ze = zis.getNextEntry()
     while (ze != null) {
 
-      val fileName = ze.getName()
-
-      if (fileName.equals(required)) {
+      val fName = ze.getName()
+      if (fName.equals(required)) {
         return Some(zis)
       }
       ze = zis.getNextEntry

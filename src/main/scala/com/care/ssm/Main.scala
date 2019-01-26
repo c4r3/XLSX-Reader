@@ -31,7 +31,10 @@ object Main {
 
     val parser = new DocumentSaxParser()
 
-    parser.lookupSheetIdByName(path, "Sheet1")
+    //val result = parser.lookupSheetIdByName(path, "Sheet1")
+    val result = parser.bubu(path)
+
+    println(s"Sheet id: $result")
 
   }
 }
