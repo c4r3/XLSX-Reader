@@ -17,63 +17,64 @@ class SheetHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandler{
   //Target and value tags
   val targetTag = "c"
   val valueTag = "v"
+  val rowTag = "row"
+
   //Attributes tags
-  val attr1 = "r"
-  val attr2 = "s"
-  val attr3 = "t"
+  val rowNumAttr = "r"
+  val xyAttr = "r"
+  val styleAttr = "s"
+  val typeAttr = "t"
 
+  //Flags
   var cellEnded = false
-
-  var valueTagEnded = false
+  var valueTagStarted = false
 
   //Temporary variables
-  var cellRow = ""
+  var cellRowNum = ""
+  var cellXY = ""
   var cellStyle = ""
   var cellType = ""
-  var cellValue = ""
 
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
 
     if(workDone) return
 
+    if(rowTag.equals(qName)) {
+      cellRowNum = attributes.getValue(rowNumAttr)
+    }
+
+    if(valueTag.equals(qName)){
+      valueTagStarted = true
+    }
+
     if(targetTag.equals(qName)) {
       //Starting "c" tag, extraction of the attributes
-      cellRow = attributes.getValue(attr1)
-      cellStyle = attributes.getValue(attr2)
-      cellType = attributes.getValue(attr3)
+      cellXY = attributes.getValue(xyAttr)
+      cellStyle = attributes.getValue(styleAttr)
+      cellType = attributes.getValue(typeAttr)
     }
   }
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {
 
     if (workDone) return
-
-    if(valueTag.equals(qName)) valueTagEnded = true
-
-    if(targetTag.equals(qName)){
-      //Closing event of target tag
-      val currentCell = new SSCell(cellRow, cellStyle, cellType, cellValue)
-
-    }
-
+  
   }
 
   override def characters(ch: Array[Char], start: Int, length: Int): Unit = {
 
     if (workDone) return
 
-    if(valueTagEnded) {
-      //Flushing buffer
-      cellValue = new String(ch, start, length)
-      val currentCell = new SSCell(cellRow, cellStyle, cellType, cellValue)
+    if(valueTagStarted) {
 
-      result.add(currentCell)
+      //Flushing buffer & reset temporary stuff
+      result.add(new SSCell(cellRowNum, cellXY, cellStyle, cellType, new String(ch, start, length)))
 
-      valueTagEnded = false
-      cellRow = ""
+      valueTagStarted = false
+      cellRowNum = ""
+      cellXY = ""
       cellStyle = ""
       cellType = ""
-      cellValue = ""
     }
   }
 
@@ -90,5 +91,5 @@ object SheetHandler {
 
   //TODO devono essere specializzate le classi con i vari tipi in overloading,verrà fatto dopo che si capisce
   //TODO la logica per determinare l'entità dagli attributi
-  case class SSCell(row: String, style: String, ctype: String, value: String)
+  case class SSCell(rowNum: String, xy: String, style: String, ctype: String, value: String)
 }

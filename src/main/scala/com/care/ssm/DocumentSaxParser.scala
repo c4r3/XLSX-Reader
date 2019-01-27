@@ -1,19 +1,16 @@
 package com.care.ssm
 
 import java.util
-import java.util.zip.ZipInputStream
 
 import com.care.ssm.handlers.SheetHandler.SSCell
-import com.care.ssm.handlers.{BaseDocumentHandler, BaseHandler, SharedStringsHandler, SheetHandler}
+import com.care.ssm.handlers.{BaseDocumentHandler, SharedStringsHandler, SheetHandler}
 import javax.xml.parsers.SAXParserFactory
 
 
 class DocumentSaxParser {
 
-
   val factory =  SAXParserFactory.newInstance
   val parser = factory.newSAXParser
-
 
   /**
     * Look up sheet Id by sheet name
@@ -25,13 +22,9 @@ class DocumentSaxParser {
     val result = extractData(xlsxPath, SSMUtils.workbook, "sheet","sheetId", 0)
     if(result.isEmpty) {
       return ""
-    } else {
+    } else { //TODO correggere sta cazzata, deve avere un solo ritorno
       return result.get(0)
     }
-  }
-
-  def bubu(xlsxPath: String): util.ArrayList[String] ={
-    extractData(xlsxPath, SSMUtils.styles, "cellStyle", "builtinId")
   }
 
   def readSheet(xlsxPath: String, sheet: String): util.ArrayList[SSCell] = {
@@ -61,7 +54,7 @@ class DocumentSaxParser {
     handler.getResult
   }
 
-
+  //TODO renderlo un unico metodo passandogli l'handler da fuori (deve essere definita una trait con il metodo getResult per gli effetti di bordo)
   private def extractData(xlsxPath: String, filePath: String, tag: String, attribute: String = "", occurrence: Int = -1): util.ArrayList[String] = {
 
     val zis = SSMUtils.extractStream(xlsxPath, filePath)
@@ -71,10 +64,5 @@ class DocumentSaxParser {
       parser.parse(zis.get, handler)
     }
     handler.getResult
-  }
-
-  def read(zis : ZipInputStream): Unit ={
-    val handler = new BaseHandler
-    parser.parse(zis,handler)
   }
 }

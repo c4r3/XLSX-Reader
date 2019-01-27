@@ -36,33 +36,4 @@ object SSMUtils {
   }
 
 
-  /*def extractStream(xlsxPath: String, required: String): Option[String] = {
-
-    //zip file content
-    val zis: ZipInputStream = new ZipInputStream(new FileInputStream(xlsxPath))
-
-    //get the zipped file list entry
-    var ze: ZipEntry = zis.getNextEntry()
-
-    while (ze != null) {
-
-      val fileName = ze.getName()
-
-      if (fileName.equals(required)) {
-
-        println("Required element detected")
-
-        new DocumentSaxParser().read(zis)
-
-        //val is: BufferedSource = Source.fromInputStream(zis)
-        //val result: Elem = XML.load(zis)
-        //println("Elem: " + result)
-
-        //return Option(Source.fromInputStream(zis).getLines.mkString("\n"))
-      }
-
-      ze = zis.getNextEntry
-    }
-    Option.empty
-  }*/
 }

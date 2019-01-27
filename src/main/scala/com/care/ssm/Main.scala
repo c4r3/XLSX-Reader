@@ -50,6 +50,6 @@ object Main {
     val result5 = parser.readSheet(path, "sheet1")
     println(s"Total Cells: ${result5.size()}")
 
-    result5.forEach(println)
+    println(result5.get(0))
   }
 }
