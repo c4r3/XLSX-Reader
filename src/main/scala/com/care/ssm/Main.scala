@@ -43,5 +43,13 @@ object Main {
     val result3 = parser.lookupSharedString(path, Set[Int](4,5,7))
     println(s"Result: $result3")
 
+    /*ora aggiungi lo sheet reader, serve una case class per le celle e un metodo di lettura intelligente
+    occorre poi un metodo in grado di fare la detection del tipo
+    e agganciare il lookup alla shared strings*/
+
+    val result5 = parser.readSheet(path, "sheet1")
+    println(s"Total Cells: ${result5.size()}")
+
+    result5.forEach(println)
   }
 }
