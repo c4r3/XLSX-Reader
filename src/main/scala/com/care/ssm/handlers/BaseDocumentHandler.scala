@@ -12,7 +12,7 @@ import org.xml.sax.helpers.DefaultHandler
   *
   * @param targetTag
   * @param targetAttribute
-  * @param occurrence <0 all valus
+  * @param occurrence <0 all values
   */
 class BaseDocumentHandler(targetTag: String, targetAttribute: String = "", occurrence: Int = -1) extends DefaultHandler{
 

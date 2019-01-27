@@ -32,9 +32,16 @@ object Main {
     val parser = new DocumentSaxParser()
 
     //val result = parser.lookupSheetIdByName(path, "Sheet1")
-    val result = parser.bubu(path)
+    //val result = parser.bubu(path)
 
-    println(s"Sheet id: $result")
+    val result = parser.lookupSharedString(path)
+    println(s"Result: $result")
+
+    val result2 = parser.lookupSharedString(path, Set[Int](1,2,3))
+    println(s"Result: $result2")
+
+    val result3 = parser.lookupSharedString(path, Set[Int](4,5,7))
+    println(s"Result: $result3")
 
   }
 }

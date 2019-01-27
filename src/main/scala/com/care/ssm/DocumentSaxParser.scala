@@ -3,7 +3,7 @@ package com.care.ssm
 import java.util
 import java.util.zip.ZipInputStream
 
-import com.care.ssm.handlers.{BaseDocumentHandler, BaseHandler}
+import com.care.ssm.handlers.{BaseDocumentHandler, BaseHandler, SharedStringsHandler}
 import javax.xml.parsers.SAXParserFactory
 
 
@@ -28,6 +28,16 @@ class DocumentSaxParser {
     extractData(xlsxPath, SSMUtils.styles, "cellStyle", "builtinId")
   }
 
+  def lookupSharedString(xlsxPath: String, ids: Set[Int] = Set[Int]()): util.ArrayList[String] ={
+
+    val zis = SSMUtils.extractStream(xlsxPath, SSMUtils.shared_strings)
+    val handler = new SharedStringsHandler(ids)
+
+    if (zis.isDefined) {
+      parser.parse(zis.get, handler)
+    }
+    handler.getResult
+  }
 
 
   private def extractData(xlsxPath: String, filePath: String, tag: String, attribute: String = ""): util.ArrayList[String] = {
