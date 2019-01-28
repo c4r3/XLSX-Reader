@@ -10,7 +10,7 @@ import org.xml.sax.helpers.DefaultHandler
   * Handler for Shared Strings File
   * @param indexes
   */
-class SheetHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandler{
+class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE) extends DefaultHandler{
 
   var result = new util.ArrayList[SSCell]
 
@@ -30,17 +30,18 @@ class SheetHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandler{
   var valueTagStarted = false
 
   //Temporary variables
-  var cellRowNum = ""
+  var cellRowNum = 0
   var cellXY = ""
   var cellStyle = ""
   var cellType = ""
 
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
 
-    if(workDone) return
+    if(workDone || isNotRequiredRow) return
 
     if(rowTag.equals(qName)) {
-      cellRowNum = attributes.getValue(rowNumAttr)
+      val rawRowNumValue = attributes.getValue(rowNumAttr)
+      cellRowNum = Integer.valueOf(rawRowNumValue)
     }
 
     if(valueTag.equals(qName)){
@@ -56,14 +57,12 @@ class SheetHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandler{
   }
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {
-
-    if (workDone) return
-  
+    //if (workDone || isNotRequiredRow) return
   }
 
   override def characters(ch: Array[Char], start: Int, length: Int): Unit = {
 
-    if (workDone) return
+    if (workDone || isNotRequiredRow) return
 
     if(valueTagStarted) {
 
@@ -71,12 +70,16 @@ class SheetHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandler{
       result.add(new SSCell(cellRowNum, cellXY, cellStyle, cellType, new String(ch, start, length)))
 
       valueTagStarted = false
-      cellRowNum = ""
       cellXY = ""
       cellStyle = ""
       cellType = ""
     }
   }
+
+  private def isNotRequiredRow: Boolean = {
+    !(fromRow.toInt <= cellRowNum && cellRowNum <= toRow.toInt)
+  }
+
 
   private def workDone: Boolean = {
     false //TODO da completare
@@ -91,5 +94,5 @@ object SheetHandler {
 
   //TODO devono essere specializzate le classi con i vari tipi in overloading,verrà fatto dopo che si capisce
   //TODO la logica per determinare l'entità dagli attributi
-  case class SSCell(rowNum: String, xy: String, style: String, ctype: String, value: String)
+  case class SSCell(rowNum: Int, xy: String, style: String, ctype: String, value: String)
 }

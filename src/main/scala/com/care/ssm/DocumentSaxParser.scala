@@ -27,15 +27,15 @@ class DocumentSaxParser {
     }
   }
 
-  def readSheet(xlsxPath: String, sheet: String): util.ArrayList[SSCell] = {
+  def readSheet(xlsxPath: String, sheet: String, fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE): util.ArrayList[SSCell] = {
 
     val sheetId = lookupSheetIdByName(xlsxPath, sheet)
-    val sheetFileName= SSMUtils.sheets_folder + "/sheet" + sheetId + ".xml"
+    val sheetFileName = SSMUtils.sheets_folder + "/sheet" + sheetId + ".xml"
 
     println(s"Reading sheet file at path $sheetFileName")
 
     val zis = SSMUtils.extractStream(xlsxPath, sheetFileName)
-    val handler = new SheetHandler()
+    val handler = new SheetHandler(fromRow, toRow)
 
     if (zis.isDefined) {
       parser.parse(zis.get, handler)
