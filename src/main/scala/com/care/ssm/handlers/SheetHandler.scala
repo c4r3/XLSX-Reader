@@ -37,12 +37,14 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE) extends Def
 
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
 
-    if(workDone || isNotRequiredRow) return
+    if(workDone) return
 
     if(rowTag.equals(qName)) {
       val rawRowNumValue = attributes.getValue(rowNumAttr)
       cellRowNum = Integer.valueOf(rawRowNumValue)
     }
+
+    if(isNotRequiredRow) return
 
     if(valueTag.equals(qName)){
       valueTagStarted = true
