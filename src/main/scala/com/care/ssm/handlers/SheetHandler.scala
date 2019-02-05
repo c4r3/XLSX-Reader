@@ -2,6 +2,7 @@ package com.care.ssm.handlers
 
 import java.util
 
+import com.care.ssm.SSMUtils
 import com.care.ssm.handlers.SheetHandler.SSCell
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
@@ -69,7 +70,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE) extends Def
     if(valueTagStarted) {
 
       //Flushing buffer & reset temporary stuff
-      result.add(new SSCell(cellRowNum, cellXY, cellStyle, cellType, new String(ch, start, length)))
+      result.add(new SSCell(cellRowNum, SSMUtils.calculateColumn(cellXY, cellRowNum), cellXY, cellStyle, cellType, new String(ch, start, length)))
 
       valueTagStarted = false
       cellXY = ""
@@ -82,9 +83,8 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE) extends Def
     !(fromRow.toInt <= cellRowNum && cellRowNum <= toRow.toInt)
   }
 
-
   private def workDone: Boolean = {
-    false //TODO da completare
+    cellRowNum > toRow.toInt
   }
 
   def getResult: util.ArrayList[SSCell] ={
@@ -96,5 +96,5 @@ object SheetHandler {
 
   //TODO devono essere specializzate le classi con i vari tipi in overloading,verrà fatto dopo che si capisce
   //TODO la logica per determinare l'entità dagli attributi
-  case class SSCell(rowNum: Int, xy: String, style: String, ctype: String, value: String)
+  case class SSCell(row: Int, column: Int, xy: String, style: String, ctype: String, value: String)
 }

@@ -35,5 +35,20 @@ object SSMUtils {
     None : Option[ZipInputStream]
   }
 
+  val lettersNum = 'Z'.toInt - 'A'.toInt + 1
+  def calculateColumn(str: String, rowNum: Int): Int = {
 
+    //Remove rowNum "AB1" -> "AB"
+    val chars = str.replace(String.valueOf(rowNum),"").toCharArray
+
+    val result: Int = chars.reverse.zipWithIndex.map(
+      pair => (pair._1.toInt - 'A'.toInt + 1) * Math.pow(lettersNum, pair._2).toInt
+    ).sum
+    return result
+  }
+
+  def main(args: Array[String]): Unit = {
+    val result = calculateColumn("F25", 25)
+    println(result)
+  }
 }
