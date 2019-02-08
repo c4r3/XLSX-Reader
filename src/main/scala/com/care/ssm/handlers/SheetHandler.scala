@@ -94,7 +94,5 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE) extends Def
 
 object SheetHandler {
 
-  //TODO devono essere specializzate le classi con i vari tipi in overloading,verrà fatto dopo che si capisce
-  //TODO la logica per determinare l'entità dagli attributi
   case class SSCell(row: Int, column: Int, xy: String, style: String, ctype: String, value: String)
 }

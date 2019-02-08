@@ -3,7 +3,8 @@ package com.care.ssm
 import java.util
 
 import com.care.ssm.handlers.SheetHandler.SSCell
-import com.care.ssm.handlers.{BaseDocumentHandler, SharedStringsHandler, SheetHandler}
+import com.care.ssm.handlers.StyleHandler.SSCellStyle
+import com.care.ssm.handlers.{BaseDocumentHandler, SharedStringsHandler, SheetHandler, StyleHandler}
 import javax.xml.parsers.SAXParserFactory
 
 
@@ -47,6 +48,17 @@ class DocumentSaxParser {
 
     val zis = SSMUtils.extractStream(xlsxPath, SSMUtils.shared_strings)
     val handler = new SharedStringsHandler(ids)
+
+    if (zis.isDefined) {
+      parser.parse(zis.get, handler)
+    }
+    handler.getResult
+  }
+
+  def lookupCellsStyles(xlsxPath: String): util.ArrayList[SSCellStyle] ={
+
+    val zis = SSMUtils.extractStream(xlsxPath, SSMUtils.styles)
+    val handler = new StyleHandler
 
     if (zis.isDefined) {
       parser.parse(zis.get, handler)

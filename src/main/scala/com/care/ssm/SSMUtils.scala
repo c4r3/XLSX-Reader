@@ -3,6 +3,8 @@ package com.care.ssm
 import java.io.FileInputStream
 import java.util.zip.{ZipEntry, ZipInputStream}
 
+import com.care.ssm.SSMUtils.SSCellType.SSCellType
+
 object SSMUtils {
 
   val content_types = "[Content_Types].xml"
@@ -47,8 +49,45 @@ object SSMUtils {
     return result
   }
 
-  def main(args: Array[String]): Unit = {
-    val result = calculateColumn("F25", 25)
-    println(result)
+  //TODO metodo per effettuare la detection del tipo della cella: sarebbe un valore di un enum.
+  //TODO In tal modo ogni cella avrà solo un int per identificare il tipo e non un int e una stringa
+  //TODO si risparmia memoria
+  //https://msdn.microsoft.com/library/office/documentformat.openxml.spreadsheet.cell.aspx
+  // -------------------------------------------------------------------------
+  // Enumeration Value          Description
+  // -------------------------------------------------------------------------
+  // b (Boolean)                Cell containing a boolean.
+  // d (Date)                   Cell contains a date in the ISO 8601 format.
+  // e (Error)                  Cell containing an error.
+  // inlineStr (Inline String)  Cell containing an (inline) rich string, i.e.,
+  //                            one not in the shared string table. If this
+  //                            cell type is used, then the cell value is in
+  //                            the is element rather than the v element in
+  //                            the cell (c element).
+  // n (Number)                 Cell containing a number.
+  // s (Shared String)          Cell containing a shared string.
+  // str (String)               Cell containing a formula string.
+  def detectCellType(style: String, rawType: String): SSCellType = {
+
+    rawType match {
+
+      case "d"          => SSCellType.Date
+      case "e"          => SSCellType.Error
+      case "inlineStr"  => SSCellType.InlineString
+      case "s"          => SSCellType.SharedString
+      case "n"          => SSCellType.Double
+      case _            => {
+        style match {
+          case some =>
+          case _ => SSCellType.Long
+        }
+      }
+    }
+    SSCellType.Unknown
+  }
+
+  object SSCellType extends Enumeration {
+    type SSCellType = Value
+    val String, SharedString, InlineString, Long, Date, Double, Error, Unknown = Value
   }
 }

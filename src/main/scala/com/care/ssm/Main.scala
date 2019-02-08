@@ -22,5 +22,11 @@ object Main {
     val result5: util.ArrayList[SheetHandler.SSCell] = parser.readSheet(path, "sheet1", 1, 2)
     println(s"Total Cells: ${result5.size()}")
     result5.forEach(println)
+
+    println("\n\n\n")
+
+    val result6 = parser.lookupCellsStyles(path)
+    println(s"Total Cells Styles: ${result6.size()}")
+    result6.forEach(println)
   }
 }
