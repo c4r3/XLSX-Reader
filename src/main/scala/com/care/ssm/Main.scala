@@ -1,7 +1,9 @@
 import java.util
 
 import com.care.ssm.handlers.SheetHandler
-import com.care.ssm.{DocumentSaxParser}
+import com.care.ssm.DocumentSaxParser
+
+import scala.collection.mutable.ListBuffer
 
 object Main {
 
@@ -10,8 +12,14 @@ object Main {
     val path = "./src/test/resources/sample.xlsx"
     val parser = new DocumentSaxParser()
 
-    val result: util.ArrayList[SheetHandler.SSCell] = parser.readSheet(path, "sheet1", 0, 7)
-    println(s"Total Cells: ${result.size()}")
-    result.forEach(println)
+    val result: ListBuffer[SheetHandler.SSRawCell] = parser.readSheet(path, "sheet1", 0, 7)
+    println(s"Total Cells: ${result.length}")
+    result.toList.foreach(c => println(c))
+
+    println("\n\n\n")
+
+    val resultList = parser.lookupValues(path, result)
+    println(s"Total Cells: ${resultList.length}")
+    resultList.foreach(c => println(c))
   }
 }

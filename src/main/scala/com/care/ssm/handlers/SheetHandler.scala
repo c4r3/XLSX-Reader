@@ -3,19 +3,21 @@ package com.care.ssm.handlers
 import java.util
 
 import com.care.ssm.SSMUtils
-import com.care.ssm.handlers.SheetHandler.SSCell
+import com.care.ssm.handlers.SheetHandler.SSRawCell
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
+
+import scala.collection.mutable.ListBuffer
 
 
 /**
   * Handler for Shared Strings File
   * @param indexes
   */
-class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE, stylesList: util.ArrayList[SSCellStyle] = new util.ArrayList[SSCellStyle]()) extends DefaultHandler{
+class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE, stylesList: ListBuffer[SSCellStyle] = ListBuffer[SSCellStyle]()) extends DefaultHandler{
 
-  var result = new util.ArrayList[SSCell]
+  var result = ListBuffer[SSRawCell]()
 
   //Target and value tags
   val targetTag = "c"
@@ -73,7 +75,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE, stylesList:
 
       //Flushing buffer & reset temporary stuff
       val style: SSCellStyle = getStyle(stylesList, cellStyle).getOrElse(null) //se non c'è style si va in lookup nella shared string o è un numerico
-      result.add(new SSCell(cellRowNum, SSMUtils.calculateColumn(cellXY, cellRowNum), cellXY, cellType, new String(ch, start, length), style))
+      result+= new SSRawCell(cellRowNum, SSMUtils.calculateColumn(cellXY, cellRowNum), cellXY, cellType, new String(ch, start, length), style)
 
       valueTagStarted = false
       cellXY = ""
@@ -90,10 +92,10 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE, stylesList:
     }
   }
 
-  def getStyle(stylesList: util.ArrayList[SSCellStyle], styleIndex: Int): Option[SSCellStyle] = {
+  def getStyle(stylesList: ListBuffer[SSCellStyle], styleIndex: Int): Option[SSCellStyle] = {
 
     if (stylesList != null && stylesList.size > styleIndex && styleIndex >= 0) {
-      Some(stylesList.get(styleIndex))
+      Some(stylesList(styleIndex))
     } else {
       None
     }
@@ -107,12 +109,12 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE, stylesList:
     cellRowNum > toRow.toInt
   }
 
-  def getResult: util.ArrayList[SSCell] ={
+  def getResult: ListBuffer[SSRawCell] ={
     result
   }
 }
 
 object SheetHandler {
 
-  case class SSCell(row: Int, column: Int, xy: String, ctype: String, value: String, style: SSCellStyle)
+  case class SSRawCell(row: Int, column: Int, xy: String, ctype: String, value: String, style: SSCellStyle)
 }

@@ -1,9 +1,9 @@
 package com.care.ssm.handlers
 
-import java.util
-
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
+
+import scala.collection.mutable.ListBuffer
 
 /**
   * Handler for Shared Strings File
@@ -11,7 +11,7 @@ import org.xml.sax.helpers.DefaultHandler
   */
 class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandler{
 
-  var result =  new util.ArrayList[String]
+  var result =  ListBuffer[String]()
   val targetTag = "t"
   var counter: Int = 0
   var targetTagEnded: Boolean = false
@@ -44,15 +44,15 @@ class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandle
     if (workDone) return
 
     if(indexes.isEmpty || indexes.contains(counter)) {
-      result.add(new String(ch, start, length))
+      result += new String(ch, start, length)
     }
   }
 
   private def workDone: Boolean = {
-    !indexes.isEmpty && result.size() == indexes.size
+    !indexes.isEmpty && result.length == indexes.size
   }
 
-  def getResult: util.ArrayList[String] ={
+  def getResult: ListBuffer[String] ={
     result
   }
 }

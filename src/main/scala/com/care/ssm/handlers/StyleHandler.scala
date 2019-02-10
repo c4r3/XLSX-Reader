@@ -1,7 +1,5 @@
 package com.care.ssm.handlers
 
-import java.util
-
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
@@ -14,7 +12,7 @@ import scala.collection.mutable.ListBuffer
   */
 class StyleHandler extends DefaultHandler{
 
-  var result =  new util.ArrayList[SSCellStyle]
+  var result =  ListBuffer[SSCellStyle]()
 
   //Target Tags
   val parentTag = "cellXfs"
@@ -60,11 +58,11 @@ class StyleHandler extends DefaultHandler{
       val applyNumberFormatTh = attributes.getValue(applyNumberFormatTag)
 
       if (applyNumberFormatTh==null || applyNumberFormatTh.trim.isEmpty) {
-        result.add(null)
+        result += null
       } else {
         val numFormatId = attributes.getValue(numFmtIdTag)
         val formatCode = numFormatsList(Integer.valueOf(applyNumberFormatTh) - 1).formatCode
-        result.add(new SSCellStyle(numFormatId, formatCode))
+        result += new SSCellStyle(numFormatId, formatCode)
       }
       index += 1
     }
@@ -93,7 +91,7 @@ class StyleHandler extends DefaultHandler{
     parentTagEnded
   }
 
-  def getResult: util.ArrayList[SSCellStyle] ={
+  def getResult: ListBuffer[SSCellStyle] ={
     result
   }
 }

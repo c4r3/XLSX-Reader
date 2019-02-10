@@ -1,9 +1,9 @@
 package com.care.ssm.handlers
 
-import java.util
-
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
+
+import scala.collection.mutable.ListBuffer
 
 /**
   * Ci sono due possibilità dato un tag da ricercare:
@@ -16,7 +16,7 @@ import org.xml.sax.helpers.DefaultHandler
   */
 class BaseDocumentHandler(targetTag: String, targetAttribute: String = "", occurrence: Int = -1) extends DefaultHandler{
 
-  var result = new util.ArrayList[String]
+  var result = ListBuffer[String]()
   var targetTagStarted = false
   var targetTagEnded = false
   var wordDone = false
@@ -34,7 +34,7 @@ class BaseDocumentHandler(targetTag: String, targetAttribute: String = "", occur
 
       if(isAttributeRequired) {
         //Attribute extraction
-        result.add(attributes.getValue(targetAttribute))
+        result += attributes.getValue(targetAttribute)
       } else {
         //the result is the text within the tag
       }
@@ -55,7 +55,7 @@ class BaseDocumentHandler(targetTag: String, targetAttribute: String = "", occur
   override def characters(ch: Array[Char], start: Int, length: Int): Unit = {
 
       if(!isAttributeRequired && targetTagStarted && !targetTagEnded) {
-        result.add(new String(ch, start, length))
+        result += new String(ch, start, length)
       }
   }
 
@@ -69,7 +69,7 @@ class BaseDocumentHandler(targetTag: String, targetAttribute: String = "", occur
     targetAttribute!=null && !targetAttribute.trim.isEmpty
   }
 
-  def getResult(): util.ArrayList[String] ={
+  def getResult(): ListBuffer[String] ={
     result
   }
 }
