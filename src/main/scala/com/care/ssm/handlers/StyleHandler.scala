@@ -59,16 +59,13 @@ class StyleHandler extends DefaultHandler{
       //Starting target tag
       val applyNumberFormatTh = attributes.getValue(applyNumberFormatTag)
 
-      
-
-      val numFormatId = attributes.getValue(numFmtIdTag)
-      val formatCode = if (applyNumberFormatTh==null || applyNumberFormatTh.trim.isEmpty) {
-        null
+      if (applyNumberFormatTh==null || applyNumberFormatTh.trim.isEmpty) {
+        result.add(null)
       } else {
-         numFormatsList(Integer.valueOf(applyNumberFormatTh) - 1).formatCode
+        val numFormatId = attributes.getValue(numFmtIdTag)
+        val formatCode = numFormatsList(Integer.valueOf(applyNumberFormatTh) - 1).formatCode
+        result.add(new SSCellStyle(numFormatId, formatCode))
       }
-
-      result.add(new SSCellStyle(numFormatId, formatCode))
       index += 1
     }
   }
