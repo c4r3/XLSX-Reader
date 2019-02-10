@@ -35,8 +35,11 @@ class DocumentSaxParser {
 
     println(s"Reading sheet file at path $sheetFileName")
 
+    //Reading style
+    val stylesList = lookupCellsStyles(xlsxPath)
+
     val zis = SSMUtils.extractStream(xlsxPath, sheetFileName)
-    val handler = new SheetHandler(fromRow, toRow)
+    val handler = new SheetHandler(fromRow, toRow, stylesList)
 
     if (zis.isDefined) {
       parser.parse(zis.get, handler)
