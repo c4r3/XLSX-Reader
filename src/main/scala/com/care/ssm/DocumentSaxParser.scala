@@ -2,7 +2,7 @@ package com.care.ssm
 
 import java.sql.Date
 
-import com.care.ssm.DocumentSaxParser.{SSMCell, SSStringCell}
+import com.care.ssm.DocumentSaxParser.{SSDoubleCell, SSMCell, SSStringCell}
 import com.care.ssm.handlers.SheetHandler.SSRawCell
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import com.care.ssm.handlers.{BaseDocumentHandler, SharedStringsHandler, SheetHandler, StyleHandler}
@@ -95,8 +95,21 @@ class DocumentSaxParser {
         //Shared string value
         val stringValue: ListBuffer[String] = lookupSharedString(xlsxPath, Set(rawCell.value.toInt))
         new SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue(0))
+      } else if("s".equals(rawCell.ctype) && rawCell.style!=null){
+
+        rawCell.style match {
+          case some => new SSDoubleCell(rawCell.xy, rawCell.row, rawCell.column, SSMUtils.toDouble(rawCell.value).getOrElse(0.0))
+          case _ => new SSDoubleCell(rawCell.xy, rawCell.row, rawCell.column, SSMUtils.toDouble(rawCell.value).getOrElse(0.0))
+        }
+
+      } else if(rawCell.ctype==null) {
+
+        rawCell.style match {
+          case some => new SSDoubleCell(rawCell.xy, rawCell.row, rawCell.column, SSMUtils.toDouble(rawCell.value).getOrElse(0.0))
+          case _ => new SSDoubleCell(rawCell.xy, rawCell.row, rawCell.column, SSMUtils.toDouble(rawCell.value).getOrElse(0.0))
+        }
+
       } else {
-        //FIXME da completare con tutte le casistiche desiderate
         new SSStringCell(rawCell.xy, rawCell.row, rawCell.column, "buuuu")
       }
     }).toList
@@ -115,7 +128,6 @@ object DocumentSaxParser {
 
   case class SSStringCell(rowCol: String, rowNum: Int, colNum: Int, value: String) extends SSMCell
   case class SSDoubleCell(rowCol: String, rowNum: Int, colNum: Int, value: Double) extends SSMCell
-  case class SSIntegerCell(rowCol: String, rowNum: Int, colNum: Int, value: Int) extends SSMCell
   case class SSDateCell(rowCol: String, rowNum: Int, colNum: Int, value: Date) extends SSMCell
   case class SSCurrencyCell(rowCol: String, rowNum: Int, colNum: Int, currency: String, value: Double) extends SSMCell
 

@@ -58,7 +58,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE, stylesList:
     if(targetTag.equals(qName)) {
       //Starting "c" tag, extraction of the attributes
       cellXY = attributes.getValue(xyAttr)
-      cellStyle = toInt(attributes.getValue(styleAttr)).getOrElse(-1)
+      cellStyle = SSMUtils.toInt(attributes.getValue(styleAttr)).getOrElse(-1)
       cellType = attributes.getValue(typeAttr)
     }
   }
@@ -81,14 +81,6 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE, stylesList:
       cellXY = ""
       cellStyle = 0
       cellType = ""
-    }
-  }
-
-  def toInt(s: String): Option[Int] = {
-    try {
-      Some(s.toInt)
-    } catch {
-      case e: Exception => None
     }
   }
 

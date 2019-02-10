@@ -49,6 +49,23 @@ object SSMUtils {
     return result
   }
 
+  def toInt(s: String): Option[Int] = {
+    try {
+      Some(s.toInt)
+    } catch {
+      case e: Exception => None
+    }
+  }
+
+  def toDouble(s: String): Option[Double] = {
+    try {
+      Some(s.toDouble)
+    } catch {
+      case e: Exception => None
+    }
+  }
+
+
   //TODO metodo per effettuare la detection del tipo della cella: sarebbe un valore di un enum.
   //TODO In tal modo ogni cella avrà solo un int per identificare il tipo e non un int e una stringa
   //TODO si risparmia memoria
