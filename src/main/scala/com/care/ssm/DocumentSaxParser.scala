@@ -19,32 +19,47 @@ class DocumentSaxParser {
     * @param sheetName
     * @return
     */
-  def lookupSheetIdByName(xlsxPath: String, sheetName: String): String ={
-    val result = extractData(xlsxPath, SSMUtils.workbook, "sheet","sheetId", 0)
-    if(result.isEmpty) {
-      return ""
-    } else { //TODO correggere sta cazzata, deve avere un solo ritorno
-      return result.get(0)
+  def lookupSheetIdByName(xlsxPath: String, sheetName: String): Option[String] ={
+
+    val zis = SSMUtils.extractStream(xlsxPath, SSMUtils.workbook)
+    val handler = new BaseDocumentHandler("sheet", "sheetId", 0)
+
+    if (zis.isDefined) {
+      parser.parse(zis.get, handler)
+    }
+    if(!handler.getResult.isEmpty) {
+      return Option(handler.getResult().get(0))
+    } else {
+      return None
     }
   }
 
   def readSheet(xlsxPath: String, sheet: String, fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE): util.ArrayList[SSCell] = {
 
     val sheetId = lookupSheetIdByName(xlsxPath, sheet)
-    val sheetFileName = SSMUtils.sheets_folder + "/sheet" + sheetId + ".xml"
+    sheetId match {
 
-    println(s"Reading sheet file at path $sheetFileName")
+      case some => {
+        val sheetFileName = SSMUtils.sheets_folder + "/sheet" + some.get + ".xml"
 
-    //Reading style
-    val stylesList = lookupCellsStyles(xlsxPath)
+        println(s"Reading sheet file at path $sheetFileName")
 
-    val zis = SSMUtils.extractStream(xlsxPath, sheetFileName)
-    val handler = new SheetHandler(fromRow, toRow, stylesList)
+        //Reading style
+        val stylesList = lookupCellsStyles(xlsxPath)
 
-    if (zis.isDefined) {
-      parser.parse(zis.get, handler)
+        val zis = SSMUtils.extractStream(xlsxPath, sheetFileName)
+        val handler = new SheetHandler(fromRow, toRow, stylesList)
+
+        if (zis.isDefined) {
+          parser.parse(zis.get, handler)
+        }
+        handler.getResult
+      }
+      case _ => {
+        println(s"No sheet available with name $sheetId")
+        new util.ArrayList[SSCell]()
+      }
     }
-    handler.getResult
   }
 
   def lookupSharedString(xlsxPath: String, ids: Set[Int] = Set[Int]()): util.ArrayList[String] ={
@@ -62,18 +77,6 @@ class DocumentSaxParser {
 
     val zis = SSMUtils.extractStream(xlsxPath, SSMUtils.styles)
     val handler = new StyleHandler
-
-    if (zis.isDefined) {
-      parser.parse(zis.get, handler)
-    }
-    handler.getResult
-  }
-
-  //TODO renderlo un unico metodo passandogli l'handler da fuori (deve essere definita una trait con il metodo getResult per gli effetti di bordo)
-  private def extractData(xlsxPath: String, filePath: String, tag: String, attribute: String = "", occurrence: Int = -1): util.ArrayList[String] = {
-
-    val zis = SSMUtils.extractStream(xlsxPath, filePath)
-    val handler = new BaseDocumentHandler(tag, attribute, occurrence)
 
     if (zis.isDefined) {
       parser.parse(zis.get, handler)
