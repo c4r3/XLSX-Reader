@@ -2,7 +2,7 @@ package com.care.ssm
 
 import java.sql.Date
 
-import com.care.ssm.DocumentSaxParser.{SSDoubleCell, SSMCell, SSStringCell}
+import com.care.ssm.DocumentSaxParser._
 import com.care.ssm.handlers.SheetHandler.SSRawCell
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import com.care.ssm.handlers.{BaseDocumentHandler, SharedStringsHandler, SheetHandler, StyleHandler}
@@ -87,34 +87,72 @@ class DocumentSaxParser {
     handler.getResult
   }
 
+  /**
+    * In questo metodo viene effettuata una lettura dal file di sharedstring per ogni stringa, c'è già l'approccio a lista
+    * usalo!
+    * @param xlsxPath
+    * @param rawCellsList
+    * @return
+    */
   def lookupValues(xlsxPath: String, rawCellsList: ListBuffer[SSRawCell]): List[SSMCell] ={
-    //TODO aggiungere una LRU Cache
     rawCellsList.map(rawCell => {
 
-      if("s".equals(rawCell.ctype) && rawCell.style==null){
-        //Shared string value
-        val stringValue: ListBuffer[String] = lookupSharedString(xlsxPath, Set(rawCell.value.toInt))
-        new SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue(0))
-      } else if("s".equals(rawCell.ctype) && rawCell.style!=null){
+      if("s".equals(rawCell.ctype)){
 
-        rawCell.style match {
-          case some => new SSDoubleCell(rawCell.xy, rawCell.row, rawCell.column, SSMUtils.toDouble(rawCell.value).getOrElse(0.0))
-          case _ => new SSDoubleCell(rawCell.xy, rawCell.row, rawCell.column, SSMUtils.toDouble(rawCell.value).getOrElse(0.0))
+        if(rawCell.style==null) {
+          //Shared string value
+          val stringValue = lookupSharedString(xlsxPath, Set(rawCell.value.toInt))
+          new SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue(0))
+        } else {
+          parseFormatValue(xlsxPath, rawCell)
         }
-
       } else if(rawCell.ctype==null) {
 
-        rawCell.style match {
-          case some => new SSDoubleCell(rawCell.xy, rawCell.row, rawCell.column, SSMUtils.toDouble(rawCell.value).getOrElse(0.0))
-          case _ => new SSDoubleCell(rawCell.xy, rawCell.row, rawCell.column, SSMUtils.toDouble(rawCell.value).getOrElse(0.0))
+        if(rawCell.style==null) {
+          //Integer value
+          new SSIntegerCell(rawCell.xy, rawCell.row, rawCell.column, SSMUtils.toInt(rawCell.value).getOrElse(0))
+        } else {
+          //Double value
+          parseFormatValue(xlsxPath, rawCell)
         }
-
       } else {
+        //Default String value
         new SSStringCell(rawCell.xy, rawCell.row, rawCell.column, "buuuu")
       }
     }).toList
   }
 
+  private def parseFormatValue(xlsxPath: String, cell: SSRawCell): SSMCell = {
+
+    val style: SSCellStyle = cell.style
+
+    style.numFmtId match {
+
+      case 1 => {
+        //Number into shared string table
+        val stringValue = lookupSharedString(xlsxPath, Set(cell.value.toInt))
+        new SSIntegerCell(cell.xy, cell.row, cell.column, SSMUtils.toInt(stringValue(0)).getOrElse(0))
+      }
+      case 164 => formatCurrencyCellValue(cell)
+      case _ => {
+        println(s"UNKNOWN numFmtId ${style.numFmtId}")
+        new SSDoubleCell(cell.xy, cell.row, cell.column, SSMUtils.toDouble(cell.value).getOrElse(0.0))
+      }
+    }
+  }
+
+  private def formatCurrencyCellValue(cell: SSRawCell): SSMCell = {
+
+    cell.style.formatCode match {
+
+      case "\"$\"#,##0" => {
+        //val doubleVal = BigDecimal(cell.value).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+        //new SSCurrencyCell(cell.xy, cell.row, cell.column, "$", doubleVal)
+        new SSCurrencyCell(cell.xy, cell.row, cell.column, "$", SSMUtils.toDouble(cell.value).getOrElse(0.0))
+      }
+      case _ => new SSDoubleCell(cell.xy, cell.row, cell.column, SSMUtils.toDouble(cell.value).getOrElse(0.0))
+    }
+  }
 }
 
 object DocumentSaxParser {
@@ -128,6 +166,7 @@ object DocumentSaxParser {
 
   case class SSStringCell(rowCol: String, rowNum: Int, colNum: Int, value: String) extends SSMCell
   case class SSDoubleCell(rowCol: String, rowNum: Int, colNum: Int, value: Double) extends SSMCell
+  case class SSIntegerCell(rowCol: String, rowNum: Int, colNum: Int, value: Int) extends SSMCell
   case class SSDateCell(rowCol: String, rowNum: Int, colNum: Int, value: Date) extends SSMCell
   case class SSCurrencyCell(rowCol: String, rowNum: Int, colNum: Int, currency: String, value: Double) extends SSMCell
 

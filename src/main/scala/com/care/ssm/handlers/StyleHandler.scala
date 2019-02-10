@@ -1,5 +1,6 @@
 package com.care.ssm.handlers
 
+import com.care.ssm.SSMUtils
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
@@ -47,7 +48,7 @@ class StyleHandler extends DefaultHandler{
 
     if(!numFmtsEnded && numFmtTag.equals(qName)) {
       //Starting numFmt tag
-      val numFmtId = attributes.getValue(numFmtIdTag)
+      val numFmtId = SSMUtils.toInt(attributes.getValue(numFmtIdTag)).getOrElse(-1)
       val formatCode = attributes.getValue(formatCodeTag)
       //List is filled before the parsing of the style tags
       numFormatsList += new SSCellStyle(numFmtId,formatCode)
@@ -60,7 +61,7 @@ class StyleHandler extends DefaultHandler{
       if (applyNumberFormatTh==null || applyNumberFormatTh.trim.isEmpty) {
         result += null
       } else {
-        val numFormatId = attributes.getValue(numFmtIdTag)
+        val numFormatId = SSMUtils.toInt(attributes.getValue(numFmtIdTag)).getOrElse(-1)
         val formatCode = numFormatsList(Integer.valueOf(applyNumberFormatTh) - 1).formatCode
         result += new SSCellStyle(numFormatId, formatCode)
       }
@@ -98,6 +99,6 @@ class StyleHandler extends DefaultHandler{
 
 object StyleHandler {
 
-  case class SSCellStyle(numFmtId: String, formatCode: String)
+  case class SSCellStyle(numFmtId: Int, formatCode: String)
 
 }
