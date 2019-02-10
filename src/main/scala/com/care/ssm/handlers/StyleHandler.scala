@@ -2,7 +2,7 @@ package com.care.ssm.handlers
 
 import java.util
 
-import com.care.ssm.handlers.StyleHandler.{SSCellNumberFormat, SSCellStyle}
+import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
@@ -34,7 +34,7 @@ class StyleHandler extends DefaultHandler{
   val formatCodeTag = "formatCode"
 
   //Number formats List (defined within <numFmts>)
-  var numFormatsList = new ListBuffer[SSCellNumberFormat]()
+  var numFormatsList = new ListBuffer[SSCellStyle]()
 
   //Position/Style Index
   var index = 0
@@ -52,20 +52,23 @@ class StyleHandler extends DefaultHandler{
       val numFmtId = attributes.getValue(numFmtIdTag)
       val formatCode = attributes.getValue(formatCodeTag)
       //List is filled before the parsing of the style tags
-      numFormatsList += new SSCellNumberFormat(numFmtId,formatCode)
+      numFormatsList += new SSCellStyle(numFmtId,formatCode)
     }
 
     if(parentTagStarted && targetTag.equals(qName)) {
       //Starting target tag
-      val applyFormatTh = attributes.getValue(applyNumberFormatTag)
+      val applyNumberFormatTh = attributes.getValue(applyNumberFormatTag)
+
+      
+
       val numFormatId = attributes.getValue(numFmtIdTag)
-      val formatCode = if (applyFormatTh==null || applyFormatTh.trim.isEmpty) {
-        "-1"
+      val formatCode = if (applyNumberFormatTh==null || applyNumberFormatTh.trim.isEmpty) {
+        null
       } else {
-         numFormatsList(Integer.valueOf(applyFormatTh) - 1).formatCode
+         numFormatsList(Integer.valueOf(applyNumberFormatTh) - 1).formatCode
       }
 
-      result.add(new SSCellStyle(index, applyFormatTh, numFormatId, formatCode))
+      result.add(new SSCellStyle(numFormatId, formatCode))
       index += 1
     }
   }
@@ -99,8 +102,7 @@ class StyleHandler extends DefaultHandler{
 }
 
 object StyleHandler {
-  //TODO da portare i valori string ad interi
-  case class SSCellStyle(index: Int, applyNumberFormat: String, numFmtId: String, formatCode: String)
 
-  case class SSCellNumberFormat(numFmtId: String, formatCode: String)
+  case class SSCellStyle(numFmtId: String, formatCode: String)
+
 }
