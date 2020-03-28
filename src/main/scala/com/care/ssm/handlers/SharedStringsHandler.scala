@@ -6,6 +6,9 @@ import org.xml.sax.helpers.DefaultHandler
 import scala.collection.mutable.ListBuffer
 
 /**
+  *
+  * @author Massimo Caresana
+  *
   * Handler for Shared Strings File
   *
   * @param indexes

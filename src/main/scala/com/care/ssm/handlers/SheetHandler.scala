@@ -13,6 +13,9 @@ import scala.collection.mutable.ListBuffer
 
 
 /**
+  *
+  * @author Massimo Caresana
+  *
   * Handler for Shared Strings File
   * @param fromRow
   * @param toRow

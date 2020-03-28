@@ -1,6 +1,8 @@
 package com.care.ssm
 
-
+/**
+  * @author Massimo Caresana
+  */
 object Main {
 
   def main(args: Array[String]): Unit = {

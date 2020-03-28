@@ -1,14 +1,14 @@
 package com.care.ssm
 
-import org.scalatest.FlatSpec
+import com.care.ssm.SSMUtils.calculateColumn
+import org.scalatest.flatspec.AnyFlatSpec
 
-object SSMUtilsTest extends FlatSpec {
+object SSMUtilsTest extends AnyFlatSpec {
 
   "column calculation" should " be correct " in {
 
-    assert(SSMUtils.calculateColumn("A1", 1) == 1)
-    assert(SSMUtils.calculateColumn("Z1", 1) == 26)
-    assert(SSMUtils.calculateColumn("AB1", 1) == 28)
-
+    assert(calculateColumn("A1", 1) == 1)
+    assert(calculateColumn("Z1", 1) == 26)
+    assert(calculateColumn("AB1", 1) == 28)
   }
 }

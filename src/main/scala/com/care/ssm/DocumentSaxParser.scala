@@ -3,7 +3,7 @@ package com.care.ssm
 import java.sql.Date
 
 import com.care.ssm.DocumentSaxParser._
-import com.care.ssm.SSMUtils.{toDouble, toInt}
+import com.care.ssm.SSMUtils.{extractStream, shared_strings, sheets_folder, styles, toDouble, toInt, workbook}
 import com.care.ssm.handlers.SheetHandler.SSRawCell
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import com.care.ssm.handlers.{BaseHandler, SharedStringsHandler, SheetHandler, StyleHandler}
@@ -12,29 +12,33 @@ import javax.xml.parsers.SAXParserFactory
 import scala.collection.mutable.ListBuffer
 
 
+/**
+  * @author Massimo Caresana
+  */
 class DocumentSaxParser {
 
-  val factory =  SAXParserFactory.newInstance
+  val factory = SAXParserFactory.newInstance
   val parser = factory.newSAXParser
 
   /**
     * Look up sheet Id by sheet name
-    * @param xlsxPath
-    * @param sheetName
+    * @param xlsxPath The xlsx file path
+    * @param sheetName The xlsx sheet name
     * @return
     */
-  def lookupSheetIdByName(xlsxPath: String, sheetName: String): Option[String] ={
+  def lookupSheetIdByName(xlsxPath: String, sheetName: String): Option[String] = {
 
-    val zis = SSMUtils.extractStream(xlsxPath, SSMUtils.workbook)
+    val zis = extractStream(xlsxPath, workbook)
     val handler = new BaseHandler("sheet", "sheetId", 0)
 
     if (zis.isDefined) {
       parser.parse(zis.get, handler)
     }
+
     if(handler.getResult.nonEmpty) {
-      return Option(handler.getResult.head)
+      Option(handler.getResult.head)
     } else {
-      return None
+      None
     }
   }
 
@@ -44,14 +48,14 @@ class DocumentSaxParser {
     sheetId match {
 
       case some => {
-        val sheetFileName = SSMUtils.sheets_folder + "/sheet" + some.get + ".xml"
+        val sheetFileName = sheets_folder + "/sheet" + some.get + ".xml"
 
         println(s"Reading sheet file at path $sheetFileName")
 
         //Reading style
         val stylesList = lookupCellsStyles(xlsxPath)
 
-        val zis = SSMUtils.extractStream(xlsxPath, sheetFileName)
+        val zis = extractStream(xlsxPath, sheetFileName)
         val handler = new SheetHandler(fromRow, toRow, stylesList)
 
         if (zis.isDefined) {
@@ -66,9 +70,9 @@ class DocumentSaxParser {
     }
   }
 
-  def lookupSharedString(xlsxPath: String, ids: Set[Int] = Set[Int]()): ListBuffer[String] ={
+  def lookupSharedString(xlsxPath: String, ids: Set[Int] = Set[Int]()): ListBuffer[String] = {
 
-    val zis = SSMUtils.extractStream(xlsxPath, SSMUtils.shared_strings)
+    val zis = extractStream(xlsxPath, shared_strings)
     val handler = new SharedStringsHandler(ids)
 
     if (zis.isDefined) {
@@ -77,9 +81,9 @@ class DocumentSaxParser {
     handler.getResult
   }
 
-  def lookupCellsStyles(xlsxPath: String): ListBuffer[SSCellStyle] ={
+  def lookupCellsStyles(xlsxPath: String): ListBuffer[SSCellStyle] = {
 
-    val zis = SSMUtils.extractStream(xlsxPath, SSMUtils.styles)
+    val zis = extractStream(xlsxPath, styles)
     val handler = new StyleHandler
 
     if (zis.isDefined) {
@@ -91,11 +95,11 @@ class DocumentSaxParser {
   /**
     * In questo metodo viene effettuata una lettura dal file di sharedstring per ogni stringa, c'è già l'approccio a lista
     * usalo!
-    * @param xlsxPath
-    * @param rawCellsList
+    * @param xlsxPath The xlsx file path
+    * @param rawCellsList The cell list of the raw values
     * @return
     */
-  def lookupValues(xlsxPath: String, rawCellsList: ListBuffer[SSRawCell]): List[SSMCell] ={
+  def lookupValues(xlsxPath: String, rawCellsList: ListBuffer[SSRawCell]): List[SSMCell] = {
 
     rawCellsList.map(rawCell => {
 
@@ -104,7 +108,7 @@ class DocumentSaxParser {
         if(rawCell.style==null) {
           //Shared string value
           val stringValue = lookupSharedString(xlsxPath, Set(rawCell.value.toInt))
-          new SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue.head)
+          SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue.head)
         } else {
           parseFormatValue(xlsxPath, rawCell)
         }
@@ -112,14 +116,14 @@ class DocumentSaxParser {
 
         if(rawCell.style==null) {
           //Integer value
-          new SSIntegerCell(rawCell.xy, rawCell.row, rawCell.column, toInt(rawCell.value).getOrElse(0))
+          SSIntegerCell(rawCell.xy, rawCell.row, rawCell.column, toInt(rawCell.value).getOrElse(0))
         } else {
           //Double value
           parseFormatValue(xlsxPath, rawCell)
         }
       } else {
         //Default String value
-        new SSStringCell(rawCell.xy, rawCell.row, rawCell.column, "buuuu")
+        SSStringCell(rawCell.xy, rawCell.row, rawCell.column, "buuuu")
       }
     }).toList
   }
@@ -133,12 +137,12 @@ class DocumentSaxParser {
       case 1 => {
         //Number into shared string table
         val stringValue = lookupSharedString(xlsxPath, Set(cell.value.toInt))
-        new SSIntegerCell(cell.xy, cell.row, cell.column, toInt(stringValue.head).getOrElse(0))
+        SSIntegerCell(cell.xy, cell.row, cell.column, toInt(stringValue.head).getOrElse(0))
       }
       case 164 => formatCurrencyCellValue(cell)
       case _ => {
         println(s"UNKNOWN numFmtId ${style.numFmtId}")
-        new SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
+        SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
       }
     }
   }
@@ -150,9 +154,9 @@ class DocumentSaxParser {
       case "\"$\"#,##0" => {
         //val doubleVal = BigDecimal(cell.value).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
         //new SSCurrencyCell(cell.xy, cell.row, cell.column, "$", doubleVal)
-        new SSCurrencyCell(cell.xy, cell.row, cell.column, "$", toDouble(cell.value).getOrElse(0.0))
+        SSCurrencyCell(cell.xy, cell.row, cell.column, "$", toDouble(cell.value).getOrElse(0.0))
       }
-      case _ => new SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
+      case _ => SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
     }
   }
 }

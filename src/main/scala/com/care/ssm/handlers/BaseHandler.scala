@@ -6,10 +6,12 @@ import org.xml.sax.helpers.DefaultHandler
 import scala.collection.mutable.ListBuffer
 
 /**
-  * Ci sono due possibilità dato un tag da ricercare:
+  *
+  * @author Massimo Caresana
+  *
+  *         Ci sono due possibilità dato un tag da ricercare:
   * - si cerca un attributo
   * - si cerca il contenuto del tag
-  *
   * @param targetTag
   * @param targetAttribute
   * @param occurrence <0 all values

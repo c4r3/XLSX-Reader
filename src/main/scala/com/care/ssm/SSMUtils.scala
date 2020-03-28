@@ -5,6 +5,9 @@ import java.util.zip.ZipInputStream
 
 import com.care.ssm.SSMUtils.SSCellType.SSCellType
 
+/**
+  * @author Massimo Caresana
+  */
 object SSMUtils {
 
   val content_types = "[Content_Types].xml"
@@ -52,7 +55,7 @@ object SSMUtils {
     try {
       Some(s.toInt)
     } catch {
-      case e: Exception => None
+      case _: Exception => None
     }
   }
 
@@ -60,7 +63,7 @@ object SSMUtils {
     try {
       Some(s.toDouble)
     } catch {
-      case e: Exception => None
+      case _: Exception => None
     }
   }
 
@@ -98,11 +101,9 @@ object SSMUtils {
       case "inlineStr" => SSCellType.InlineString
       case "s" => SSCellType.SharedString
       case "n" => SSCellType.Double
-      case _ => {
+      case _ =>
         style match {
-          case some =>
           case _ => SSCellType.Long
-        }
       }
     }
     SSCellType.Unknown
