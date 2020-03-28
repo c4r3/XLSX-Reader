@@ -1,5 +1,4 @@
-
-import com.care.ssm.DocumentSaxParser
+package com.care.ssm
 
 
 object Main {
@@ -9,9 +8,7 @@ object Main {
     val path = "./src/test/resources/sample.xlsx"
     val parser = new DocumentSaxParser
 
-    val result = parser.readSheet(path, "sheet1", 0, 3)
-    result.foreach(c => println(c))
-    println("\n")
+    val result = parser.readSheet(path, "sheet1", 0)
     val resultList = parser.lookupValues(path, result)
     println(s"Total Cells: ${resultList.length}")
     resultList.foreach(c => println(c))

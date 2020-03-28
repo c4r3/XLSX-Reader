@@ -5,7 +5,7 @@ import java.sql.Date
 import com.care.ssm.DocumentSaxParser._
 import com.care.ssm.handlers.SheetHandler.SSRawCell
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
-import com.care.ssm.handlers.{BaseDocumentHandler, SharedStringsHandler, SheetHandler, StyleHandler}
+import com.care.ssm.handlers.{BaseHandler, SharedStringsHandler, SheetHandler, StyleHandler}
 import javax.xml.parsers.SAXParserFactory
 
 import scala.collection.mutable.ListBuffer
@@ -25,7 +25,7 @@ class DocumentSaxParser {
   def lookupSheetIdByName(xlsxPath: String, sheetName: String): Option[String] ={
 
     val zis = SSMUtils.extractStream(xlsxPath, SSMUtils.workbook)
-    val handler = new BaseDocumentHandler("sheet", "sheetId", 0)
+    val handler = new BaseHandler("sheet", "sheetId", 0)
 
     if (zis.isDefined) {
       parser.parse(zis.get, handler)
@@ -95,6 +95,7 @@ class DocumentSaxParser {
     * @return
     */
   def lookupValues(xlsxPath: String, rawCellsList: ListBuffer[SSRawCell]): List[SSMCell] ={
+
     rawCellsList.map(rawCell => {
 
       if("s".equals(rawCell.ctype)){

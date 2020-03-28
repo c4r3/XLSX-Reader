@@ -9,7 +9,6 @@ import scala.collection.mutable.ListBuffer
 
 /**
   * Handler for Shared Strings File
-  * @param indexes
   */
 class StyleHandler extends DefaultHandler{
 

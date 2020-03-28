@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
   * @param targetAttribute
   * @param occurrence <0 all values
   */
-class BaseDocumentHandler(targetTag: String, targetAttribute: String = "", occurrence: Int = -1) extends DefaultHandler{
+class BaseHandler(targetTag: String, targetAttribute: String = "", occurrence: Int = -1) extends DefaultHandler{
 
   var result = ListBuffer[String]()
   var targetTagStarted = false
