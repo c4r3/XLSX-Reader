@@ -14,25 +14,24 @@ import scala.collection.mutable.ListBuffer
   * @param targetAttribute
   * @param occurrence <0 all values
   */
-class BaseHandler(targetTag: String, targetAttribute: String = "", occurrence: Int = -1) extends DefaultHandler{
+class BaseHandler(targetTag: String, targetAttribute: String = "", occurrence: Int = -1) extends DefaultHandler {
 
   var result = ListBuffer[String]()
   var targetTagStarted = false
   var targetTagEnded = false
   var wordDone = false
 
-
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
 
-    if(workDone) return
+    if (workDone) return
 
-    if(qName.equals(targetTag)){
+    if (qName.equals(targetTag)) {
       //Starting event of target tag
       println(s"Start event of element: $qName")
 
       targetTagStarted = true
 
-      if(isAttributeRequired) {
+      if (isAttributeRequired) {
         //Attribute extraction
         result += attributes.getValue(targetAttribute)
       } else {
@@ -51,25 +50,24 @@ class BaseHandler(targetTag: String, targetAttribute: String = "", occurrence: I
     }
   }
 
-
   override def characters(ch: Array[Char], start: Int, length: Int): Unit = {
 
-      if(!isAttributeRequired && targetTagStarted && !targetTagEnded) {
-        result += new String(ch, start, length)
-      }
+    if (!isAttributeRequired && targetTagStarted && !targetTagEnded) {
+      result += new String(ch, start, length)
+    }
   }
 
   private def workDone: Boolean = {
     //negative occurrence -> all values
     //[0,[ -> the corresponding value(s)
-    occurrence>0 && result.size==occurrence
+    occurrence > 0 && result.size == occurrence
   }
 
   private def isAttributeRequired: Boolean = {
-    targetAttribute!=null && !targetAttribute.trim.isEmpty
+    targetAttribute != null && !targetAttribute.trim.isEmpty
   }
 
-  def getResult(): ListBuffer[String] ={
+  def getResult: ListBuffer[String] = {
     result
   }
 }

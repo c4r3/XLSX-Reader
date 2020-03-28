@@ -7,8 +7,8 @@ object Main {
 
     val path = "./src/test/resources/sample.xlsx"
     val parser = new DocumentSaxParser
+    val result = parser.readSheet(path, "sheet1")
 
-    val result = parser.readSheet(path, "sheet1", 0)
     val resultList = parser.lookupValues(path, result)
     println(s"Total Cells: ${resultList.length}")
     resultList.foreach(c => println(c))

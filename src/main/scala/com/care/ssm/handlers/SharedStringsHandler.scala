@@ -7,20 +7,21 @@ import scala.collection.mutable.ListBuffer
 
 /**
   * Handler for Shared Strings File
+  *
   * @param indexes
   */
-class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandler{
+class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandler {
 
-  var result =  ListBuffer[String]()
+  var result = ListBuffer[String]()
   val targetTag = "t"
   var counter: Int = 0
   var targetTagEnded: Boolean = false
 
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
 
-    if(workDone) return
+    if (workDone) return
 
-    if(targetTag.equals(qName)) {
+    if (targetTag.equals(qName)) {
       //Starting target tag
       targetTagEnded = false
       //println(s"Starting target tag: $targetTag")
@@ -31,7 +32,7 @@ class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandle
 
     if (workDone) return
 
-    if(targetTag.equals(qName)) {
+    if (targetTag.equals(qName)) {
       //Closing target tag
       counter += 1
       targetTagEnded = true
@@ -43,16 +44,16 @@ class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandle
 
     if (workDone) return
 
-    if(indexes.isEmpty || indexes.contains(counter)) {
+    if (indexes.isEmpty || indexes.contains(counter)) {
       result += new String(ch, start, length)
     }
   }
 
   private def workDone: Boolean = {
-    !indexes.isEmpty && result.length == indexes.size
+    indexes.nonEmpty && result.length == indexes.size
   }
 
-  def getResult: ListBuffer[String] ={
+  def getResult: ListBuffer[String] = {
     result
   }
 }

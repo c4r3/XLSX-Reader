@@ -22,13 +22,11 @@ object SSMUtils {
 
   def extractStream(xlsxPath: String, required: String): Option[ZipInputStream] = {
 
-    //zip file content
     val zis = new ZipInputStream(new FileInputStream(xlsxPath))
-
-    var ze = zis.getNextEntry()
+    var ze = zis.getNextEntry
     while (ze != null) {
 
-      val fName = ze.getName()
+      val fName = ze.getName
       if (fName.equals(required)) {
         return Some(zis)
       }
@@ -37,7 +35,7 @@ object SSMUtils {
     None: Option[ZipInputStream]
   }
 
-  val lettersNum = 'Z'.toInt - 'A'.toInt + 1
+  val lettersNum: Int = 'Z'.toInt - 'A'.toInt + 1
 
   def calculateColumn(str: String, rowNum: Int): Int = {
 
@@ -47,7 +45,7 @@ object SSMUtils {
     val result: Int = chars.reverse.zipWithIndex.map(
       pair => (pair._1.toInt - 'A'.toInt + 1) * Math.pow(lettersNum, pair._2).toInt
     ).sum
-    return result
+    result
   }
 
   def toInt(s: String): Option[Int] = {
@@ -79,18 +77,17 @@ object SSMUtils {
     * b (Boolean)                Cell containing a boolean.
     * d (Date)                   Cell contains a date in the ISO 8601 format.
     * e (Error)                  Cell containing an error.
-    * inlineStr (Inline String)  Cell containing an (inline) rich string, i.e.,
-    * one not in the shared string table. If this
-    * cell type is used, then the cell value is in
-    * the is element rather than the v element in
-    * the cell (c element).
+    * inlineStr (Inline String)  Cell containing an (inline) rich string, i.e., one not in the shared string table.
+    *                            If this cell type is used, then the cell value is in the is element rather than the
+    *                            v element in the cell (c element).
     * n (Number)                 Cell containing a number.
     * s (Shared String)          Cell containing a shared string.
     * str (String)               Cell containing a formula string
     * </pre>
-    * @param style
-    * @param rawType
-    * @return
+    *
+    * @param style The style string value
+    * @param rawType The type string value
+    * @return The detected SSCellType
     */
   def detectCellType(style: String, rawType: String): SSCellType = {
 

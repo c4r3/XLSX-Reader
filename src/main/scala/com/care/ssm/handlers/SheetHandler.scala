@@ -1,8 +1,9 @@
 package com.care.ssm.handlers
 
-import java.util
+import java.lang.Integer._
 
 import com.care.ssm.SSMUtils
+import com.care.ssm.SSMUtils.calculateColumn
 import com.care.ssm.handlers.SheetHandler.SSRawCell
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import org.xml.sax.Attributes
@@ -13,9 +14,11 @@ import scala.collection.mutable.ListBuffer
 
 /**
   * Handler for Shared Strings File
-  * @param indexes
+  * @param fromRow
+  * @param toRow
+  * @param stylesList
   */
-class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE, stylesList: ListBuffer[SSCellStyle] = ListBuffer[SSCellStyle]()) extends DefaultHandler{
+class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuffer[SSCellStyle] = ListBuffer[SSCellStyle]()) extends DefaultHandler{
 
   var result = ListBuffer[SSRawCell]()
 
@@ -46,7 +49,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE, stylesList:
 
     if(rowTag.equals(qName)) {
       val rawRowNumValue = attributes.getValue(rowNumAttr)
-      cellRowNum = Integer.valueOf(rawRowNumValue)
+      cellRowNum = valueOf(rawRowNumValue)
     }
 
     if(isNotRequiredRow) return
@@ -74,8 +77,8 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE, stylesList:
     if(valueTagStarted) {
 
       //Flushing buffer & reset temporary stuff
-      val style: SSCellStyle = getStyle(stylesList, cellStyle).getOrElse(null) //se non c'è style si va in lookup nella shared string o è un numerico
-      result+= new SSRawCell(cellRowNum, SSMUtils.calculateColumn(cellXY, cellRowNum), cellXY, cellType, new String(ch, start, length), style)
+      val style: SSCellStyle = getStyle(stylesList, cellStyle).orNull //se non c'è style si va in lookup nella shared string o è un numerico
+      result+= SSRawCell(cellRowNum, calculateColumn(cellXY, cellRowNum), cellXY, cellType, new String(ch, start, length), style)
 
       valueTagStarted = false
       cellXY = ""

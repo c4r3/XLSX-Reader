@@ -3,6 +3,7 @@ package com.care.ssm
 import java.sql.Date
 
 import com.care.ssm.DocumentSaxParser._
+import com.care.ssm.SSMUtils.{toDouble, toInt}
 import com.care.ssm.handlers.SheetHandler.SSRawCell
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import com.care.ssm.handlers.{BaseHandler, SharedStringsHandler, SheetHandler, StyleHandler}
@@ -30,8 +31,8 @@ class DocumentSaxParser {
     if (zis.isDefined) {
       parser.parse(zis.get, handler)
     }
-    if(!handler.getResult.isEmpty) {
-      return Option(handler.getResult()(0))
+    if(handler.getResult.nonEmpty) {
+      return Option(handler.getResult.head)
     } else {
       return None
     }
@@ -103,7 +104,7 @@ class DocumentSaxParser {
         if(rawCell.style==null) {
           //Shared string value
           val stringValue = lookupSharedString(xlsxPath, Set(rawCell.value.toInt))
-          new SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue(0))
+          new SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue.head)
         } else {
           parseFormatValue(xlsxPath, rawCell)
         }
@@ -111,7 +112,7 @@ class DocumentSaxParser {
 
         if(rawCell.style==null) {
           //Integer value
-          new SSIntegerCell(rawCell.xy, rawCell.row, rawCell.column, SSMUtils.toInt(rawCell.value).getOrElse(0))
+          new SSIntegerCell(rawCell.xy, rawCell.row, rawCell.column, toInt(rawCell.value).getOrElse(0))
         } else {
           //Double value
           parseFormatValue(xlsxPath, rawCell)
@@ -132,12 +133,12 @@ class DocumentSaxParser {
       case 1 => {
         //Number into shared string table
         val stringValue = lookupSharedString(xlsxPath, Set(cell.value.toInt))
-        new SSIntegerCell(cell.xy, cell.row, cell.column, SSMUtils.toInt(stringValue(0)).getOrElse(0))
+        new SSIntegerCell(cell.xy, cell.row, cell.column, toInt(stringValue.head).getOrElse(0))
       }
       case 164 => formatCurrencyCellValue(cell)
       case _ => {
         println(s"UNKNOWN numFmtId ${style.numFmtId}")
-        new SSDoubleCell(cell.xy, cell.row, cell.column, SSMUtils.toDouble(cell.value).getOrElse(0.0))
+        new SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
       }
     }
   }
@@ -149,9 +150,9 @@ class DocumentSaxParser {
       case "\"$\"#,##0" => {
         //val doubleVal = BigDecimal(cell.value).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
         //new SSCurrencyCell(cell.xy, cell.row, cell.column, "$", doubleVal)
-        new SSCurrencyCell(cell.xy, cell.row, cell.column, "$", SSMUtils.toDouble(cell.value).getOrElse(0.0))
+        new SSCurrencyCell(cell.xy, cell.row, cell.column, "$", toDouble(cell.value).getOrElse(0.0))
       }
-      case _ => new SSDoubleCell(cell.xy, cell.row, cell.column, SSMUtils.toDouble(cell.value).getOrElse(0.0))
+      case _ => new SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
     }
   }
 }
