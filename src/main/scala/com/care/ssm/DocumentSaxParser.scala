@@ -1,9 +1,10 @@
 package com.care.ssm
 
+import java.lang.Integer.MAX_VALUE
 import java.sql.Date
 
 import com.care.ssm.DocumentSaxParser._
-import com.care.ssm.SSMUtils.{extractStream, shared_strings, sheets_folder, styles, toDouble, toInt, workbook}
+import com.care.ssm.SSMUtils._
 import com.care.ssm.handlers.SheetHandler.SSRawCell
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import com.care.ssm.handlers.{BaseHandler, SharedStringsHandler, SheetHandler, StyleHandler}
@@ -35,38 +36,38 @@ class DocumentSaxParser {
       parser.parse(zis.get, handler)
     }
 
-    if(handler.getResult.nonEmpty) {
-      Option(handler.getResult.head)
-    } else {
-      None
-    }
+    if(handler.getResult.nonEmpty) Option(handler.getResult.head) else None
   }
 
-  def readSheet(xlsxPath: String, sheet: String, fromRow: Int = 0, toRow: Int = Integer.MAX_VALUE): ListBuffer[SSRawCell] = {
+  private def buildInnerZipSheetFilePath(sheetsFolder: String, sheetId: String): String = {
+    sheetsFolder + "/sheet" + sheetId + ".xml";
+  }
+
+  def readSheet(xlsxPath: String, sheet: String, fromRow: Int = 0, toRow: Int = MAX_VALUE): ListBuffer[SSRawCell] = {
+
+    //TODO serve una validazione dei parametri inseriti
 
     val sheetId = lookupSheetIdByName(xlsxPath, sheet)
+
     sheetId match {
 
-      case some => {
-        val sheetFileName = sheets_folder + "/sheet" + some.get + ".xml"
+      case some =>
 
+        val sheetFileName = buildInnerZipSheetFilePath(sheets_folder, some.get)
         println(s"Reading sheet file at path $sheetFileName")
 
-        //Reading style
         val stylesList = lookupCellsStyles(xlsxPath)
-
-        val zis = extractStream(xlsxPath, sheetFileName)
         val handler = new SheetHandler(fromRow, toRow, stylesList)
 
+        val zis = extractStream(xlsxPath, sheetFileName)
         if (zis.isDefined) {
           parser.parse(zis.get, handler)
         }
         handler.getResult
-      }
-      case _ => {
+
+      case _ =>
         println(s"No sheet available with name $sheetId")
         ListBuffer[SSRawCell]()
-      }
     }
   }
 
@@ -134,16 +135,15 @@ class DocumentSaxParser {
 
     style.numFmtId match {
 
-      case 1 => {
+      case 1 =>
         //Number into shared string table
         val stringValue = lookupSharedString(xlsxPath, Set(cell.value.toInt))
         SSIntegerCell(cell.xy, cell.row, cell.column, toInt(stringValue.head).getOrElse(0))
-      }
       case 164 => formatCurrencyCellValue(cell)
-      case _ => {
+      case _ =>
         println(s"UNKNOWN numFmtId ${style.numFmtId}")
         SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
-      }
+
     }
   }
 
