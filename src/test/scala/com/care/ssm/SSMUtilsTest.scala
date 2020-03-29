@@ -3,7 +3,7 @@ package com.care.ssm
 import com.care.ssm.SSMUtils.calculateColumn
 import org.scalatest.flatspec.AnyFlatSpec
 
-object SSMUtilsTest extends AnyFlatSpec {
+class SSMUtilsTest extends AnyFlatSpec {
 
   "column calculation" should " be correct " in {
 
