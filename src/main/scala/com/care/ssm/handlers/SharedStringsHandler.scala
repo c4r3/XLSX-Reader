@@ -9,13 +9,12 @@ import scala.collection.mutable.ListBuffer
   *
   * @author Massimo Caresana
   *
-  * Handler for Shared Strings File
-  *
-  * @param indexes
+  *         Handler for Shared Strings File
+  * @param indexes the required indexes of the strings
   */
 class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandler {
 
-  var result = ListBuffer[String]()
+  var result: ListBuffer[String] = ListBuffer[String]()
   val targetTag = "t"
   var counter: Int = 0
   var targetTagEnded: Boolean = false
@@ -24,22 +23,22 @@ class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandle
 
     if (workDone) return
 
-    if (targetTag.equals(qName)) {
-      //Starting target tag
+    if (isTTag(qName)) {
       targetTagEnded = false
-      //println(s"Starting target tag: $targetTag")
     }
+  }
+
+  private def isTTag(tag: String): Boolean = {
+    targetTag.equals(tag);
   }
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {
 
     if (workDone) return
 
-    if (targetTag.equals(qName)) {
-      //Closing target tag
+    if (isTTag(qName)) {
       counter += 1
       targetTagEnded = true
-      //println(s"Ending target tag: $targetTag")
     }
   }
 

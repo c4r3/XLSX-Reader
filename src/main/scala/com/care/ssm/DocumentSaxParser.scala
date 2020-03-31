@@ -23,7 +23,8 @@ class DocumentSaxParser {
 
   /**
     * Look up sheet Id by sheet name
-    * @param xlsxPath The xlsx file path
+    *
+    * @param xlsxPath  The xlsx file path
     * @param sheetName The xlsx sheet name
     * @return
     */
@@ -36,7 +37,7 @@ class DocumentSaxParser {
       parser.parse(zis.get, handler)
     }
 
-    if(handler.getResult.nonEmpty) Option(handler.getResult.head) else None
+    if (handler.getResult.nonEmpty) Option(handler.getResult.head) else None
   }
 
   private def buildInnerZipSheetFilePath(sheetsFolder: String, sheetId: String): String = {
@@ -71,7 +72,7 @@ class DocumentSaxParser {
     }
   }
 
-  def lookupSharedString(xlsxPath: String, ids: Set[Int] = Set[Int]()): ListBuffer[String] = {
+  private def lookupSharedString(xlsxPath: String, ids: Set[Int] = Set[Int]()): ListBuffer[String] = {
 
     val zis = extractStream(xlsxPath, shared_strings)
     val handler = new SharedStringsHandler(ids)
@@ -96,7 +97,8 @@ class DocumentSaxParser {
   /**
     * In questo metodo viene effettuata una lettura dal file di sharedstring per ogni stringa, c'è già l'approccio a lista
     * usalo!
-    * @param xlsxPath The xlsx file path
+    *
+    * @param xlsxPath     The xlsx file path
     * @param rawCellsList The cell list of the raw values
     * @return
     */
@@ -104,18 +106,18 @@ class DocumentSaxParser {
 
     rawCellsList.map(rawCell => {
 
-      if("s".equals(rawCell.ctype)){
+      if ("s".equals(rawCell.ctype)) {
 
-        if(rawCell.style==null) {
+        if (rawCell.style == null) {
           //Shared string value
           val stringValue = lookupSharedString(xlsxPath, Set(rawCell.value.toInt))
           SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue.head)
         } else {
           parseFormatValue(xlsxPath, rawCell)
         }
-      } else if(rawCell.ctype==null) {
+      } else if (rawCell.ctype == null) {
 
-        if(rawCell.style==null) {
+        if (rawCell.style == null) {
           //Integer value
           SSIntegerCell(rawCell.xy, rawCell.row, rawCell.column, toInt(rawCell.value).getOrElse(0))
         } else {
@@ -143,7 +145,6 @@ class DocumentSaxParser {
       case _ =>
         println(s"UNKNOWN numFmtId ${style.numFmtId}")
         SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
-
     }
   }
 
@@ -169,8 +170,13 @@ object DocumentSaxParser {
   }
 
   case class SSStringCell(rowCol: String, rowNum: Int, colNum: Int, value: String) extends SSMCell
+
   case class SSDoubleCell(rowCol: String, rowNum: Int, colNum: Int, value: Double) extends SSMCell
+
   case class SSIntegerCell(rowCol: String, rowNum: Int, colNum: Int, value: Int) extends SSMCell
+
   case class SSDateCell(rowCol: String, rowNum: Int, colNum: Int, value: Date) extends SSMCell
+
   case class SSCurrencyCell(rowCol: String, rowNum: Int, colNum: Int, currency: String, value: Double) extends SSMCell
+
 }
