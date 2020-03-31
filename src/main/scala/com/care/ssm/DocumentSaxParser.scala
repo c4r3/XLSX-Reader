@@ -82,7 +82,7 @@ class DocumentSaxParser {
     handler.getResult
   }
 
-  def lookupCellsStyles(xlsxPath: String): ListBuffer[SSCellStyle] = {
+  private def lookupCellsStyles(xlsxPath: String): ListBuffer[SSCellStyle] = {
 
     val zis = extractStream(xlsxPath, styles)
     val handler = new StyleHandler
@@ -151,11 +151,10 @@ class DocumentSaxParser {
 
     cell.style.formatCode match {
 
-      case "\"$\"#,##0" => {
+      case "\"$\"#,##0" =>
         //val doubleVal = BigDecimal(cell.value).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
         //new SSCurrencyCell(cell.xy, cell.row, cell.column, "$", doubleVal)
         SSCurrencyCell(cell.xy, cell.row, cell.column, "$", toDouble(cell.value).getOrElse(0.0))
-      }
       case _ => SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
     }
   }
@@ -164,7 +163,6 @@ class DocumentSaxParser {
 object DocumentSaxParser {
 
   sealed trait SSMCell {
-
     val rowCol: String
     val rowNum: Int
     val colNum: Int
@@ -175,5 +173,4 @@ object DocumentSaxParser {
   case class SSIntegerCell(rowCol: String, rowNum: Int, colNum: Int, value: Int) extends SSMCell
   case class SSDateCell(rowCol: String, rowNum: Int, colNum: Int, value: Date) extends SSMCell
   case class SSCurrencyCell(rowCol: String, rowNum: Int, colNum: Int, currency: String, value: Double) extends SSMCell
-
 }
