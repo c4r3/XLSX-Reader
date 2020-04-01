@@ -84,11 +84,11 @@ class StyleHandler extends DefaultHandler{
     }
   }
 
+/*
   override def characters(ch: Array[Char], start: Int, length: Int): Unit = {
-
     if (workDone) return
-
   }
+*/
 
   private def workDone: Boolean = {
     parentTagEnded

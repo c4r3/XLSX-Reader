@@ -9,16 +9,16 @@ import scala.collection.mutable.ListBuffer
   *
   * @author Massimo Caresana
   *
-  *         Ci sono due possibilità dato un tag da ricercare:
+  * Ci sono due possibilità dato un tag da ricercare:
   * - si cerca un attributo
   * - si cerca il contenuto del tag
-  * @param targetTag
-  * @param targetAttribute
+  * @param targetTag The target tag
+  * @param targetAttribute The target tag's attribute
   * @param occurrence <0 all values
   */
 class BaseHandler(targetTag: String, targetAttribute: String = "", occurrence: Int = -1) extends DefaultHandler {
 
-  var result = ListBuffer[String]()
+  var result: ListBuffer[String] = ListBuffer[String]()
   var targetTagStarted = false
   var targetTagEnded = false
   var wordDone = false

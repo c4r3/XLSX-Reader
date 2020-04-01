@@ -9,7 +9,7 @@ import scala.collection.mutable.ListBuffer
   *
   * @author Massimo Caresana
   *
-  *         Handler for Shared Strings File
+  * Handler for Shared Strings File
   * @param indexes the required indexes of the strings
   */
 class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandler {
@@ -29,7 +29,7 @@ class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandle
   }
 
   private def isTTag(tag: String): Boolean = {
-    targetTag.equals(tag);
+    targetTag.equals(tag)
   }
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {

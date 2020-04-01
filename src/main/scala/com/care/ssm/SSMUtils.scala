@@ -96,14 +96,14 @@ object SSMUtils {
 
     rawType match {
 
-      case "d" => SSCellType.Date
-      case "e" => SSCellType.Error
-      case "inlineStr" => SSCellType.InlineString
-      case "s" => SSCellType.SharedString
-      case "n" => SSCellType.Double
+      case "d" => return SSCellType.Date
+      case "e" => return SSCellType.Error
+      case "inlineStr" => return SSCellType.InlineString
+      case "s" => return SSCellType.SharedString
+      case "n" => return SSCellType.Double
       case _ =>
         style match {
-          case _ => SSCellType.Long
+          case _ => return SSCellType.Long
         }
     }
     SSCellType.Unknown
@@ -113,5 +113,4 @@ object SSMUtils {
     type SSCellType = Value
     val String, SharedString, InlineString, Long, Date, Double, Error, Unknown = Value
   }
-
 }
