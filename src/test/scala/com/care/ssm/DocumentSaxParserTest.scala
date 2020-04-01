@@ -54,5 +54,18 @@ class DocumentSaxParserTest extends AnyFlatSpec with PrivateMethodTester with Ma
       "Ashish","Jane","Year","Value")
 
     result should be (expected)
+
+    val result_1: ListBuffer[String] = parser invokePrivate method("./src/test/resources/sample_1/sample.xlsx",
+      Set[Int](0,1,2))
+
+    result_1 should have size 3
+    result_1 should be (List[String]("2000","2007","2008"))
+
+    val result_2: ListBuffer[String] = parser invokePrivate method("./src/test/resources/sample_1/sample.xlsx",
+      Set[Int](129,130,131,132,133,134,135,136,137))
+
+    result_2 should have size 9
+    result_2 should be (List[String]("2129","Postcode","Sales_Rep_ID","Sales_Rep_Name","John","Ashish","Jane",
+      "Year","Value"))
   }
 }
