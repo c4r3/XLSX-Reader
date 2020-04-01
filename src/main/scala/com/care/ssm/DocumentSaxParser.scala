@@ -8,7 +8,7 @@ import com.care.ssm.SSMUtils._
 import com.care.ssm.handlers.SheetHandler.SSRawCell
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import com.care.ssm.handlers.{BaseHandler, SharedStringsHandler, SheetHandler, StyleHandler}
-import javax.xml.parsers.SAXParserFactory
+import javax.xml.parsers.{SAXParser, SAXParserFactory}
 
 import scala.collection.mutable.ListBuffer
 
@@ -18,8 +18,8 @@ import scala.collection.mutable.ListBuffer
   */
 class DocumentSaxParser {
 
-  val factory = SAXParserFactory.newInstance
-  val parser = factory.newSAXParser
+  val factory: SAXParserFactory = SAXParserFactory.newInstance
+  val parser: SAXParser = factory.newSAXParser
 
   /**
     * Look up sheet Id by sheet name
