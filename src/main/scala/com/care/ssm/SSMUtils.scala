@@ -112,5 +112,4 @@ object SSMUtils {
     type SSCellType = Value
     val String, SharedString, InlineString, Long, Date, Double, Error, Unknown = Value
   }
-
 }

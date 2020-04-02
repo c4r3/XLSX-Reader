@@ -4,7 +4,7 @@ import java.lang.Integer.MAX_VALUE
 import java.sql.Date
 
 import com.care.ssm.DocumentSaxParser._
-import com.care.ssm.SSMUtils.SSCellType.{SSCellType => _, _}
+import com.care.ssm.SSMUtils.SSCellType.{SSCellType => _}
 import com.care.ssm.SSMUtils.{SSCellType, _}
 import com.care.ssm.handlers.SheetHandler.SSRawCell
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
@@ -42,7 +42,7 @@ class DocumentSaxParser {
   }
 
   private def buildInnerZipSheetFilePath(sheetsFolder: String, sheetId: String): String = {
-    sheetsFolder + "/sheet" + sheetId + ".xml";
+    sheetsFolder + "/sheet" + sheetId + ".xml"
   }
 
   def readSheet(xlsxPath: String, sheet: String, fromRow: Int = 0, toRow: Int = MAX_VALUE): ListBuffer[SSRawCell] = {
@@ -103,59 +103,44 @@ class DocumentSaxParser {
     * @param rawCellsList The cell list of the raw values
     * @return
     */
-  def lookupValues(xlsxPath: String, rawCellsList: ListBuffer[SSRawCell]): List[SSMCell] = {
+  def parseRawCells(xlsxPath: String, rawCellsList: ListBuffer[SSRawCell]): List[SSMCell] = {
 
-    rawCellsList.map(rawCell => {
-
-      if ("s".equals(rawCell.ctype)) {
-
-        if (rawCell.style == null) {
-          //Shared string value
-          val stringValue = lookupSharedString(xlsxPath, Set(rawCell.value.toInt))
-          SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue.head)
-        } else {
-          parseFormatValue(xlsxPath, rawCell)
-        }
-      } else if (rawCell.ctype == null) {
-
-        if (rawCell.style == null) {
-          //Integer value
-          SSIntegerCell(rawCell.xy, rawCell.row, rawCell.column, toInt(rawCell.value).getOrElse(0))
-        } else {
-          //Double value
-          parseFormatValue(xlsxPath, rawCell)
-        }
-      } else {
-        //Default String value
-        SSStringCell(rawCell.xy, rawCell.row, rawCell.column, "buuuu")
-      }
-    }).toList
+    rawCellsList.flatMap(rawCell => parseRawCell(xlsxPath, rawCell)).toList
   }
 
   def parseRawCell(xlsxPath: String, rawCell: SSRawCell): Option[SSMCell] = {
 
-    val cellType = detectCellType(rawCell.ctype)
+    detectCellType(rawCell.ctype) match {
 
-    cellType match {
-
-      case SharedString => parseSharedStringCell(xlsxPath, rawCell)
-      case InlineString => None //TODO aggiungere la casistica
+      case SSCellType.SharedString => parseSharedStringCell(xlsxPath, rawCell)
+      case SSCellType.InlineString => None //TODO aggiungere la casistica
       case SSCellType.Date => None //TODO aggiungere la casistica
-      case Double => None //TODO aggiungere
-      case Error  => None
-      case _  => None
+      case SSCellType.Double => None //TODO aggiungere
+      case SSCellType.Error => None //TODO aggiungere
+      case _ => parseNumericCell(xlsxPath, rawCell)
     }
     None
   }
 
-  def isSharedString(style: SSCellStyle): Boolean = {
+  def parseNumericCell(xlsxPath: String, rawCell: SSRawCell): SSMCell = {
+
+    if (noStylePresent(rawCell.style)) {
+      //Integer value
+      SSIntegerCell(rawCell.xy, rawCell.row, rawCell.column, toInt(rawCell.value).getOrElse(0))
+    } else {
+      //Double value
+      parseFormatValue(xlsxPath, rawCell)
+    }
+  }
+
+  def noStylePresent(style: SSCellStyle): Boolean = {
     style == null //TODO introdurre un None
   }
 
   def parseSharedStringCell(xlsxPath: String, rawCell: SSRawCell): SSMCell = {
 
-    if (isSharedString(rawCell.style)) {
-      //Shared string value
+    if (noStylePresent(rawCell.style)) {
+      //Shared String value
       val stringValue = lookupSharedString(xlsxPath, Set(rawCell.value.toInt))
       SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue.head)
     } else {
@@ -168,7 +153,7 @@ class DocumentSaxParser {
     val style: SSCellStyle = cell.style
 
     style.numFmtId match {
-//TODO aggiungere gli altri casi
+      //TODO aggiungere gli altri casi
       case 1 =>
         //Number into shared string table
         val stringValue = lookupSharedString(xlsxPath, Set(cell.value.toInt))
