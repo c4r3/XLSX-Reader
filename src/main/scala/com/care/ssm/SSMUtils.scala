@@ -3,7 +3,9 @@ package com.care.ssm
 import java.io.FileInputStream
 import java.util.zip.ZipInputStream
 
+import com.care.ssm.DocumentSaxParser.{SSMCell, SSStringCell}
 import com.care.ssm.SSMUtils.SSCellType.SSCellType
+import com.care.ssm.handlers.SheetHandler.SSRawCell
 
 /**
   * @author Massimo Caresana
@@ -88,29 +90,27 @@ object SSMUtils {
     * str (String)               Cell containing a formula string
     * </pre>
     *
-    * @param style   The style string value
     * @param rawType The type string value
     * @return The detected SSCellType
     */
-  def detectCellType(style: String, rawType: String): SSCellType = {
+  def detectCellType(rawType: String): Option[SSCellType] = {
 
     rawType match {
 
-      case "d" => return SSCellType.Date
-      case "e" => return SSCellType.Error
-      case "inlineStr" => return SSCellType.InlineString
-      case "s" => return SSCellType.SharedString
-      case "n" => return SSCellType.Double
-      case _ =>
-        style match {
-          case _ => return SSCellType.Long
-        }
+      case "d" => return Some(SSCellType.Date)
+      case "e" => return Some(SSCellType.Error)
+      case "inlineStr" => return Some(SSCellType.InlineString)
+      case "s" => return Some(SSCellType.SharedString)
+      case "n" => return Some(SSCellType.Double)
+        //TODO da correggere, bisogna vedere che lettera ha
+      case _ => return Some(SSCellType.Long)
     }
-    SSCellType.Unknown
+    None
   }
 
   object SSCellType extends Enumeration {
     type SSCellType = Value
     val String, SharedString, InlineString, Long, Date, Double, Error, Unknown = Value
   }
+
 }

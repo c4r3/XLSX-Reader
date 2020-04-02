@@ -107,7 +107,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuf
     cellRowNum > toRow.toInt
   }
 
-  def getResult: ListBuffer[SSRawCell] ={
+  def getResult: ListBuffer[SSRawCell] = {
     result
   }
 }

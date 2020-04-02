@@ -28,11 +28,11 @@ class SSMUtilsTest extends AnyFlatSpec with Matchers {
 
   "The cell type detection " should " be correct" in {
 
-    detectCellType("", "d") should be(Date)
-    detectCellType("", "e") should be(Error)
-    detectCellType("", "inlineStr") should be(InlineString)
-    detectCellType("", "s") should be(SharedString)
-    detectCellType("", "n") should be(Double)
-    detectCellType("", "not-existing") should be(Long)
+    detectCellType("d").get should be(Date)
+    detectCellType("e").get should be(Error)
+    detectCellType("inlineStr").get should be(InlineString)
+    detectCellType("s").get should be(SharedString)
+    detectCellType("n").get should be(Double)
+    detectCellType("not-existing").get should be(Long)
   }
 }

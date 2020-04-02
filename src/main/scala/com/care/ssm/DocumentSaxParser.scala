@@ -4,7 +4,8 @@ import java.lang.Integer.MAX_VALUE
 import java.sql.Date
 
 import com.care.ssm.DocumentSaxParser._
-import com.care.ssm.SSMUtils._
+import com.care.ssm.SSMUtils.SSCellType.{SSCellType => _, _}
+import com.care.ssm.SSMUtils.{SSCellType, _}
 import com.care.ssm.handlers.SheetHandler.SSRawCell
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import com.care.ssm.handlers.{BaseHandler, SharedStringsHandler, SheetHandler, StyleHandler}
@@ -131,12 +132,43 @@ class DocumentSaxParser {
     }).toList
   }
 
+  def parseRawCell(xlsxPath: String, rawCell: SSRawCell): Option[SSMCell] = {
+
+    val cellType = detectCellType(rawCell.ctype)
+
+    cellType match {
+
+      case SharedString => parseSharedStringCell(xlsxPath, rawCell)
+      case InlineString => None //TODO aggiungere la casistica
+      case SSCellType.Date => None //TODO aggiungere la casistica
+      case Double => None //TODO aggiungere
+      case Error  => None
+      case _  => None
+    }
+    None
+  }
+
+  def isSharedString(style: SSCellStyle): Boolean = {
+    style == null //TODO introdurre un None
+  }
+
+  def parseSharedStringCell(xlsxPath: String, rawCell: SSRawCell): SSMCell = {
+
+    if (isSharedString(rawCell.style)) {
+      //Shared string value
+      val stringValue = lookupSharedString(xlsxPath, Set(rawCell.value.toInt))
+      SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue.head)
+    } else {
+      parseFormatValue(xlsxPath, rawCell)
+    }
+  }
+
   private def parseFormatValue(xlsxPath: String, cell: SSRawCell): SSMCell = {
 
     val style: SSCellStyle = cell.style
 
     style.numFmtId match {
-
+//TODO aggiungere gli altri casi
       case 1 =>
         //Number into shared string table
         val stringValue = lookupSharedString(xlsxPath, Set(cell.value.toInt))
