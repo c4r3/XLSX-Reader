@@ -3,9 +3,7 @@ package com.care.ssm
 import java.io.FileInputStream
 import java.util.zip.ZipInputStream
 
-import com.care.ssm.DocumentSaxParser.{SSMCell, SSStringCell}
 import com.care.ssm.SSMUtils.SSCellType.SSCellType
-import com.care.ssm.handlers.SheetHandler.SSRawCell
 
 /**
   * @author Massimo Caresana
@@ -83,8 +81,8 @@ object SSMUtils {
     * d (Date)                   Cell contains a date in the ISO 8601 format.
     * e (Error)                  Cell containing an error.
     * inlineStr (Inline String)  Cell containing an (inline) rich string, i.e., one not in the shared string table.
-    * If this cell type is used, then the cell value is in the is element rather than the
-    * v element in the cell (c element).
+    *                                 If this cell type is used, then the cell value is in the is element rather
+    *                                 than the v element in the cell (c element).
     * n (Number)                 Cell containing a number.
     * s (Shared String)          Cell containing a shared string.
     * str (String)               Cell containing a formula string
@@ -97,19 +95,19 @@ object SSMUtils {
 
     rawType match {
 
-      case "d" => return Some(SSCellType.Date)
-      case "e" => return Some(SSCellType.Error)
-      case "inlineStr" => return Some(SSCellType.InlineString)
-      case "s" => return Some(SSCellType.SharedString)
-      case "n" => return Some(SSCellType.Double)
+      case "d" => Some(SSCellType.Date)
+      case "e" => Some(SSCellType.Error)
+      case "inlineStr" => Some(SSCellType.InlineString)
+      case "s" => Some(SSCellType.SharedString)
+      case "n" => Some(SSCellType.Double)
+      case "b" => Some(SSCellType.Boolean)
         //TODO da correggere, bisogna vedere che lettera ha
-      case _ => return Some(SSCellType.Long)
+      case _ => Some(SSCellType.Long)
     }
-    None
   }
 
   object SSCellType extends Enumeration {
     type SSCellType = Value
-    val String, SharedString, InlineString, Long, Date, Double, Error, Unknown = Value
+    val String, SharedString, InlineString, Boolean, Long, Date, Double, Error, Unknown = Value
   }
 }

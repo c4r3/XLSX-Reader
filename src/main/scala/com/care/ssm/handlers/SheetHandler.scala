@@ -23,18 +23,24 @@ import scala.collection.mutable.ListBuffer
   */
 class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuffer[SSCellStyle] = ListBuffer[SSCellStyle]()) extends DefaultHandler{
 
-  var result = ListBuffer[SSRawCell]()
+  var result: ListBuffer[SSRawCell] = ListBuffer[SSRawCell]()
 
-  //Target and value tags
+  //Child Elements
   val targetTag = "c"
   val valueTag = "v"
   val rowTag = "row"
+  val formula = "f"
+  val richTextInline = "is"
+  val futureFeatureDataStorageArea = "extLst"
 
-  //Attributes tags
+  //Attributes
   val rowNumAttr = "r"
   val xyAttr = "r"
   val styleAttr = "s"
   val typeAttr = "t"
+  val cellMetadataIndexAttr = "cm"
+  val showPhoneticAttr = "ph"
+  val valueMetadataIndexAttr = "vm"
 
   //Flags
   var cellEnded = false
@@ -49,6 +55,37 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuf
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
 
     if(workDone) return
+
+    if(formula.equals(qName)) {
+      print("warning: no formula is supported, check the workbook")
+      return
+    }
+
+    if(richTextInline.equals(qName)) {
+      print("warning: no rich text inline is supported, check the workbook")
+      return
+    }
+
+    if(richTextInline.equals(qName)) {
+      print("warning: no future feature data storage area supported, check the workbook")
+      return
+    }
+
+    if(cellMetadataIndexAttr.equals(qName)) {
+      print("warning: no cell metadata index attribute area supported, check the workbook")
+      return
+    }
+
+    if(showPhoneticAttr.equals(qName)) {
+      print("warning: no phonetic attribute area supported, check the workbook")
+      return
+    }
+
+    if(valueMetadataIndexAttr.equals(qName)) {
+      print("warning: no value metadata index attribute area supported, check the workbook")
+      return
+    }
+
 
     if(rowTag.equals(qName)) {
       val rawRowNumValue = attributes.getValue(rowNumAttr)

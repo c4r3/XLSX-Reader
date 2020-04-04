@@ -113,13 +113,18 @@ class DocumentSaxParser {
     detectCellType(rawCell.ctype) match {
 
       case SSCellType.SharedString => parseSharedStringCell(xlsxPath, rawCell)
-      case SSCellType.InlineString => None //TODO aggiungere la casistica
+      case SSCellType.InlineString => parseInlineStringCell(rawCell)
       case SSCellType.Date => None //TODO aggiungere la casistica
       case SSCellType.Double => None //TODO aggiungere
       case SSCellType.Error => None //TODO aggiungere
       case _ => parseNumericCell(xlsxPath, rawCell)
     }
-    None
+    None //FIXME è sbagliato, occorre gestire il fallimento del parsing delle celle
+  }
+
+  def parseInlineStringCell(rawCell: SSRawCell): SSMCell = {
+    //Inline String value
+    SSStringCell(rawCell.xy, rawCell.row, rawCell.column, rawCell.value)
   }
 
   def parseNumericCell(xlsxPath: String, rawCell: SSRawCell): SSMCell = {
