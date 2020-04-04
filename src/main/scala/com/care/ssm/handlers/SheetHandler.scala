@@ -17,9 +17,9 @@ import scala.collection.mutable.ListBuffer
   * @author Massimo Caresana
   *
   * Handler for Shared Strings File
-  * @param fromRow
-  * @param toRow
-  * @param stylesList
+  * @param fromRow Start reading from this zero-based index
+  * @param toRow End reading to this zero-based index
+  * @param stylesList The style data
   */
 class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuffer[SSCellStyle] = ListBuffer[SSCellStyle]()) extends DefaultHandler{
 
@@ -85,7 +85,6 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuf
       print("warning: no value metadata index attribute area supported, check the workbook")
       return
     }
-
 
     if(rowTag.equals(qName)) {
       val rawRowNumValue = attributes.getValue(rowNumAttr)

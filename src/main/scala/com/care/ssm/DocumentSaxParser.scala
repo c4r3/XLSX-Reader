@@ -58,6 +58,7 @@ class DocumentSaxParser {
         val sheetFileName = buildInnerZipSheetFilePath(sheets_folder, some.get)
         println(s"Reading sheet file at path $sheetFileName")
 
+        //Style data usually is a small amount of data, so it can be read once
         val stylesList = lookupCellsStyles(xlsxPath)
         val handler = new SheetHandler(fromRow, toRow, stylesList)
 
