@@ -2,3 +2,5 @@
 **/target
 **/*.class
 **/.~lock*
+**/.DS_Store
+**/~$*
