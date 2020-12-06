@@ -6,5 +6,5 @@ scalaVersion := "2.13.1"
 
 libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-xml" % "1.3.0",
-  "org.scalatest" %% "scalatest" % "3.1.1" % Test
+  "org.scalatest" %% "scalatest" % "3.2.0" % Test
 )
