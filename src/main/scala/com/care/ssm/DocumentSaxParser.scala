@@ -41,13 +41,11 @@ class DocumentSaxParser {
     if (handler.getResult.nonEmpty) Option(handler.getResult.head) else None
   }
 
-  private def buildInnerZipSheetFilePath(sheetsFolder: String, sheetId: String): String = {
+  private def buildInnerZipSheetFilePath(sheetsFolder: String, sheetId: String): String =
     sheetsFolder + "/sheet" + sheetId + ".xml"
-  }
 
+  //TODO serve una validazione dei parametri inseriti
   def readSheet(xlsxPath: String, sheet: String, fromRow: Int = 0, toRow: Int = MAX_VALUE): ListBuffer[SSRawCell] = {
-
-    //TODO serve una validazione dei parametri inseriti
 
     val sheetId = lookupSheetIdByName(xlsxPath, sheet)
 
@@ -104,82 +102,76 @@ class DocumentSaxParser {
     * @param rawCellsList The cell list of the raw values
     * @return
     */
-  def parseRawCells(xlsxPath: String, rawCellsList: ListBuffer[SSRawCell]): List[SSMCell] = {
-
+  def parseRawCells(xlsxPath: String, rawCellsList: ListBuffer[SSRawCell]): List[SSMCell] =
     rawCellsList.flatMap(rawCell => parseRawCell(xlsxPath, rawCell)).toList
-  }
+
 
   def parseRawCell(xlsxPath: String, rawCell: SSRawCell): Option[SSMCell] = {
 
     detectCellType(rawCell.ctype) match {
 
-      case SSCellType.SharedString => parseSharedStringCell(xlsxPath, rawCell)
-      case SSCellType.InlineString => parseInlineStringCell(rawCell)
+      case SSCellType.InlineString => Some(parseInlineStringCell(rawCell))
       case SSCellType.Date => None //TODO aggiungere la casistica
-      case SSCellType.Double => None //TODO aggiungere
+      case SSCellType.Double => Some(createSSDoubleCell(rawCell))
       case SSCellType.Error => None //TODO aggiungere
-      case _ => parseNumericCell(xlsxPath, rawCell)
+
+      case SSCellType.SharedString | _ =>
+        if (noStylePresent(rawCell.style)) {
+          Some(createSSStringCellValue(rawCell, xlsxPath))
+        } else {
+          Some(parseFormatValue(rawCell))
+        }
     }
-    None //FIXME è sbagliato, occorre gestire il fallimento del parsing delle celle
   }
 
-  def parseInlineStringCell(rawCell: SSRawCell): SSMCell = {
-    //Inline String value
+  //Inline String value
+  def parseInlineStringCell(rawCell: SSRawCell): SSMCell =
     SSStringCell(rawCell.xy, rawCell.row, rawCell.column, rawCell.value)
-  }
 
-  def parseNumericCell(xlsxPath: String, rawCell: SSRawCell): SSMCell = {
+  def noStylePresent(style: SSCellStyle): Boolean = style == null //TODO introdurre un None
 
-    if (noStylePresent(rawCell.style)) {
-      //Integer value
-      SSIntegerCell(rawCell.xy, rawCell.row, rawCell.column, toInt(rawCell.value).getOrElse(0))
-    } else {
-      //Double value
-      parseFormatValue(xlsxPath, rawCell)
-    }
-  }
+  private def parseFormatValue(cell: SSRawCell): SSMCell = {
 
-  def noStylePresent(style: SSCellStyle): Boolean = {
-    style == null //TODO introdurre un None
-  }
+    cell.style.numFmtId match { //TODO aggiungere gli altri casi
 
-  def parseSharedStringCell(xlsxPath: String, rawCell: SSRawCell): SSMCell = {
-
-    if (noStylePresent(rawCell.style)) {
-      //Shared String value
-      val stringValue = lookupSharedString(xlsxPath, Set(rawCell.value.toInt))
-      SSStringCell(rawCell.xy, rawCell.row, rawCell.column, stringValue.head)
-    } else {
-      parseFormatValue(xlsxPath, rawCell)
-    }
-  }
-
-  private def parseFormatValue(xlsxPath: String, cell: SSRawCell): SSMCell = {
-
-    val style: SSCellStyle = cell.style
-
-    style.numFmtId match {
-      //TODO aggiungere gli altri casi
-      case 1 =>
-        //Number into shared string table
-        val stringValue = lookupSharedString(xlsxPath, Set(cell.value.toInt))
-        SSIntegerCell(cell.xy, cell.row, cell.column, toInt(stringValue.head).getOrElse(0))
+      case 1 => createSSIntegerCell(cell)
       case 164 => formatCurrencyCellValue(cell)
       case _ =>
-        println(s"UNKNOWN numFmtId ${style.numFmtId}")
-        SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
+        println(s"UNKNOWN numFmtId ${cell.style.numFmtId}")
+        createSSDoubleCell(cell)
     }
   }
 
   private def formatCurrencyCellValue(cell: SSRawCell): SSMCell = {
 
     cell.style.formatCode match {
+      case "\"$\"#,##0" => createSSCurrencyCellValue(cell) //TODO andrebbero gestite più valute
+      case _ => createSSDoubleCell(cell)
+    }
+  }
 
-      case "\"$\"#,##0" =>
-        //val doubleVal = BigDecimal(cell.value).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
-        //new SSCurrencyCell(cell.xy, cell.row, cell.column, "$", doubleVal)
-        SSCurrencyCell(cell.xy, cell.row, cell.column, "$", toDouble(cell.value).getOrElse(0.0))
-      case _ => SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
+  //EVALUATED CELLS VALUES AND CREATION
+  def createSSDoubleCell(cell: SSRawCell): SSMCell = {
+    SSDoubleCell(cell.xy, cell.row, cell.column, toDouble(cell.value).getOrElse(0.0))
+  }
+
+  def createSSIntegerCell(cell: SSRawCell): SSMCell = {
+    SSIntegerCell(cell.xy, cell.row, cell.column, toInt(cell.value).getOrElse(0))
+  }
+
+  def createSSCurrencyCellValue(cell: SSRawCell): SSMCell = {
+
+    //val doubleVal = BigDecimal(cell.value).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+    SSCurrencyCell(cell.xy, cell.row, cell.column, "$", toDouble(cell.value).getOrElse(0.0))
+  }
+
+  def createSSStringCellValue(cell: SSRawCell, xlsxPath: String): SSMCell = {
+
+    val stringValue = lookupSharedString(xlsxPath, Set(cell.value.toInt))
+    if(stringValue.isEmpty) { //No value found --> Integer Cell
+      createSSIntegerCell(cell)
+    } else {
+      SSStringCell(cell.xy, cell.row, cell.column, stringValue.head)
     }
   }
 }

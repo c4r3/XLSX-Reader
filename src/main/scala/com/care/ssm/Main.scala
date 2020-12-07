@@ -12,7 +12,7 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-    val path = "./src/test/resources/sample.xlsx"
+    val path = "./src/test/resources/sample_1/sample.xlsx"
     val parser = new DocumentSaxParser
     val result: ListBuffer[SSRawCell] = parser.readSheet(path, "sheet1")
     val resultList: List[SSMCell] = parser.parseRawCells(path, result)

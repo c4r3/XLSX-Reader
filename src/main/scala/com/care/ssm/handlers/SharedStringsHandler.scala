@@ -28,9 +28,7 @@ class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandle
     }
   }
 
-  private def isTTag(tag: String): Boolean = {
-    targetTag.equals(tag)
-  }
+  private def isTTag(tag: String): Boolean = targetTag.equals(tag)
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {
 
@@ -51,11 +49,7 @@ class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandle
     }
   }
 
-  private def workDone: Boolean = {
-    indexes.nonEmpty && result.length == indexes.size
-  }
+  private def workDone: Boolean = indexes.nonEmpty && result.length == indexes.size
 
-  def getResult: ListBuffer[String] = {
-    result
-  }
+  def getResult: ListBuffer[String] = result
 }

@@ -1,6 +1,8 @@
 package com.care.ssm
 
 import java.io.FileInputStream
+import java.lang.Math.pow
+import java.lang.String.valueOf
 import java.util.zip.ZipInputStream
 
 import com.care.ssm.SSMUtils.SSCellType.SSCellType
@@ -43,12 +45,11 @@ object SSMUtils {
   def calculateColumn(str: String, rowNum: Int): Int = {
 
     //Remove rowNum "AB1" -> "AB"
-    val chars = str.replace(String.valueOf(rowNum), "").toCharArray
+    val chars = str.replace(valueOf(rowNum), "").toCharArray
 
-    val result: Int = chars.reverse.zipWithIndex.map(
-      pair => (pair._1.toInt - 'A'.toInt + 1) * Math.pow(lettersNum, pair._2).toInt
+    chars.reverse.zipWithIndex.map(
+      pair => (pair._1.toInt - 'A'.toInt + 1) * pow(lettersNum, pair._2).toInt
     ).sum
-    result
   }
 
   def toInt(s: String): Option[Int] = {
@@ -101,7 +102,7 @@ object SSMUtils {
       case "s" => Some(SSCellType.SharedString)
       case "n" => Some(SSCellType.Double)
       case "b" => Some(SSCellType.Boolean)
-        //TODO da correggere, bisogna vedere che lettera ha
+      //TODO da correggere, bisogna vedere che lettera ha
       case _ => Some(SSCellType.Long)
     }
   }

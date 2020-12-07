@@ -26,7 +26,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuf
   var result: ListBuffer[SSRawCell] = ListBuffer[SSRawCell]()
 
   //Child Elements
-  val targetTag = "c"
+  val cellTag = "c"
   val valueTag = "v"
   val rowTag = "row"
   val formula = "f"
@@ -54,7 +54,8 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuf
 
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
 
-    if(workDone) return
+    //TODO controllare, serve solo uno dei due
+    if (workDone || isNotRequiredRow) return
 
     if(formula.equals(qName)) {
       print("warning: no formula is supported, check the workbook")
@@ -91,13 +92,11 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuf
       cellRowNum = valueOf(rawRowNumValue)
     }
 
-    if(isNotRequiredRow) return
-
     if(valueTag.equals(qName)){
       valueTagStarted = true
     }
 
-    if(targetTag.equals(qName)) {
+    if(cellTag.equals(qName)) {
       //Starting "c" tag, extraction of the attributes
       cellXY = attributes.getValue(xyAttr)
       cellStyle = SSMUtils.toInt(attributes.getValue(styleAttr)).getOrElse(-1)
