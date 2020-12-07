@@ -48,7 +48,6 @@ class DocumentSaxParser {
   def readSheet(xlsxPath: String, sheet: String, fromRow: Int = 0, toRow: Int = MAX_VALUE): ListBuffer[SSRawCell] = {
 
     val sheetId = lookupSheetIdByName(xlsxPath, sheet)
-
     sheetId match {
 
       case some =>
@@ -119,7 +118,7 @@ class DocumentSaxParser {
         if (noStylePresent(rawCell.style)) {
           Some(createSSStringCellValue(rawCell, xlsxPath))
         } else {
-          Some(parseFormatValue(rawCell))
+          parseFormatValue(rawCell)
         }
     }
   }
@@ -130,16 +129,50 @@ class DocumentSaxParser {
 
   def noStylePresent(style: SSCellStyle): Boolean = style == null //TODO introdurre un None
 
-  private def parseFormatValue(cell: SSRawCell): SSMCell = {
+  //reference http://www.ecma-international.org/publications/standards/Ecma-376.htm
+  //pag 2127, pdf 1st ed part 4
+  private def parseFormatValue(cell: SSRawCell): Option[SSMCell] = {
 
-    cell.style.numFmtId match { //TODO aggiungere gli altri casi
+    val res = cell.style.numFmtId match { //TODO aggiungere gli altri casi
 
-      case 1 => createSSIntegerCell(cell)
+      case 0 => null //General
+      case 1 => createSSIntegerCell(cell) //0
+      case 2 => createSSDoubleCell(cell) //0.00
+      case 3 => createSSDoubleCell(cell) //#,##0
+      case 4 => createSSDoubleCell(cell) //#,##0.00
+      case 9 => createSSDoubleCell(cell) //0%
+      case 10 => createSSDoubleCell(cell) //0.00%
+      case 11 => createSSDoubleCell(cell) //0.00E+00
+      case 12 => null //# ?/?
+      case 13 => null //# ??/??
+      case 14 => null //mm-dd-yy
+      case 15 => null //d-mmm-yy
+      case 16 => null //d-mmm
+      case 17 => null //mmm-yy
+      case 18 => null //h:mm AM/PM
+      case 19 => null //h:mm:ss AM/PM
+      case 20 => null //h:mm
+      case 21 => null //h:mm:ss
+      case 22 => null //m/d/yy h:mm
+      case 37 => createSSDoubleCell(cell) //#,##0 ;(#,##0)
+      case 38 => createSSDoubleCell(cell) //#,##0 ;[Red](#,##0)
+      case 39 => createSSDoubleCell(cell) //#,##0.00;(#,##0.00)
+      case 40 => createSSDoubleCell(cell) //#,##0.00;[Red](#,##0.00)
+      case 45 => null //mm:ss
+      case 46 => null //[h]:mm:ss
+      case 47 => null //mmss.0
+      case 48 => createSSDoubleCell(cell) //##0.0E+0
+      case 49 => null //@
       case 164 => formatCurrencyCellValue(cell)
+      case 165 => null //forse integer o float https://github.com/jsonkenl/xlsxir/issues/17
+      case 166 => formatCurrencyCellValue(cell) //$#,##0.00
+      case 167 => null //forse date https://github.com/jsonkenl/xlsxir/issues/17
       case _ =>
         println(s"UNKNOWN numFmtId ${cell.style.numFmtId}")
         createSSDoubleCell(cell)
     }
+
+    Some(res)
   }
 
   private def formatCurrencyCellValue(cell: SSRawCell): SSMCell = {
