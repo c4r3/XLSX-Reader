@@ -21,7 +21,7 @@ import scala.collection.mutable.ListBuffer
   * @param toRow End reading to this zero-based index
   * @param stylesList The style data
   */
-class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuffer[SSCellStyle] = ListBuffer[SSCellStyle]()) extends DefaultHandler{
+class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SSCellStyle] = List[SSCellStyle]()) extends DefaultHandler{
 
   var result: ListBuffer[SSRawCell] = ListBuffer[SSRawCell]()
 
@@ -115,8 +115,8 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuf
     if(valueTagStarted) {
 
       //Flushing buffer & reset temporary stuff
-      val style: SSCellStyle = getStyle(stylesList, cellStyle).orNull //se non c'è style si va in lookup nella shared string o è un numerico
-      result+= SSRawCell(cellRowNum, calculateColumn(cellXY, cellRowNum), cellXY, cellType, new String(ch, start, length), style)
+      val style: SSCellStyle = getStyle(stylesList, cellStyle).orNull
+      result += SSRawCell(cellRowNum, calculateColumn(cellXY, cellRowNum), cellXY, cellType, new String(ch, start, length), style)
 
       valueTagStarted = false
       cellXY = ""
@@ -125,14 +125,12 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: ListBuf
     }
   }
 
-  def getStyle(stylesList: ListBuffer[SSCellStyle], styleIndex: Int): Option[SSCellStyle] = {
-
+  def getStyle(stylesList: List[SSCellStyle], styleIndex: Int): Option[SSCellStyle] =
     if (stylesList != null && stylesList.size > styleIndex && styleIndex >= 0) {
       Some(stylesList(styleIndex))
     } else {
       None
     }
-  }
 
   private def isNotRequiredRow: Boolean = {
     !(fromRow.toInt <= cellRowNum && cellRowNum <= toRow.toInt)

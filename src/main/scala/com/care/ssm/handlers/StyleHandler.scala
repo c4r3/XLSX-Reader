@@ -57,18 +57,73 @@ class StyleHandler extends DefaultHandler{
     }
 
     if(parentTagStarted && targetTag.equals(qName)) {
-      //Starting target tag
-      val applyNumberFormatTh = attributes.getValue(applyNumberFormatTag)
+//      //Starting target tag
+//      val applyNumberFormatTh = attributes.getValue(applyNumberFormatTag)
+//
+//      if (applyNumberFormatTh==null || applyNumberFormatTh.trim.isEmpty) {
+//        result += null
+//      } else {
+//        val numFormatId = toInt(attributes.getValue(numFmtIdTag)).getOrElse(-1)
+//        val formatCode = numFormatsList(Integer.valueOf(applyNumberFormatTh) - 1).formatCode
+//        result += SSCellStyle(numFormatId, formatCode)
+//      }
 
-      if (applyNumberFormatTh==null || applyNumberFormatTh.trim.isEmpty) {
-        result += null
-      } else {
-        val numFormatId = toInt(attributes.getValue(numFmtIdTag)).getOrElse(-1)
-        val formatCode = numFormatsList(Integer.valueOf(applyNumberFormatTh) - 1).formatCode
-        result += SSCellStyle(numFormatId, formatCode)
+      toInt(attributes.getValue(numFmtIdTag)) match {
+        case Some(num) => {
+
+          //Se il numFmtId è presente nella numFormatList allora prendo quel valore, altrimenti significa che è uno stile standard (definito a priori)
+          numFormatsList.find( sCell => sCell.numFmtId == num) match {
+
+            case Some(style) => result += style
+            case None => {
+              val currentNumFormat = lookupFormatCode(num)
+              result += SSCellStyle(num, currentNumFormat)
+            }
+          }
+        }
+        case None => result += null
       }
+
       index += 1
     }
+  }
+
+  def lookupFormatCode(c : Int): String = {
+    val res = c match {
+      case 0 => "General"
+      case 1 => "0"
+      case 2 => "0.00"
+      case 3 => "#,##0"
+      case 4 => "#,##0.00"
+      case 9 => "0%"
+      case 10 => "0.00%"
+      case 11 => "0.00E+00"
+      case 12 => "#?/?"
+      case 13 => "#??/??"
+      case 14 => "mm-dd-yy"
+      case 15 => "d-mmm-yy"
+      case 16 => "d-mmm"
+      case 17 => "mmm-yy"
+      case 18 => "h:mm AM/PM"
+      case 19 => "h:mm:ss AM/PM"
+      case 20 => "h:mm"
+      case 21 => "h:mm:ss"
+      case 22 => "m/d/yy h:mm"
+      case 37 => "#,##0;(#,##0)"
+      case 38 => "#,##0 ;[Red](#,##0)"
+      case 39 => "#,##0.00;(#,##0.00)"
+      case 40 => "#,##0.00;[Red](#,##0.00)"
+      case 45 => "mm:ss"
+      case 46 => "[h]:mm:ss"
+      case 47 => "mmss.0"
+      case 48 => "##0.0E+0"
+      case 49 => "@"
+      case _ => {
+        print(s"UNKNOWN numfmtId $c")
+        null
+      }
+    }
+    res
   }
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {
@@ -88,8 +143,8 @@ class StyleHandler extends DefaultHandler{
     parentTagEnded
   }
 
-  def getResult: ListBuffer[SSCellStyle] = {
-    result
+  def getResult: List[SSCellStyle] = {
+    result.toList
   }
 }
 

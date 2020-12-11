@@ -68,6 +68,14 @@ object SSMUtils {
     }
   }
 
+  def toLong(s: String): Option[Long] = {
+    try {
+      Some(s.toLong)
+    } catch {
+      case _: Exception => None
+    }
+  }
+
   //TODO metodo per effettuare la detection del tipo della cella: sarebbe un valore di un enum.
   //TODO In tal modo ogni cella avrà solo un int per identificare il tipo e non un int e una stringa
   //TODO si risparmia memoria
@@ -92,23 +100,26 @@ object SSMUtils {
     * @param rawType The type string value
     * @return The detected SSCellType
     */
-  def detectCellType(rawType: String): Option[SSCellType] = {
+  def detectCellType(rawType: String): SSCellType = {
 
     rawType match {
-
-      case "d" => Some(SSCellType.Date)
-      case "e" => Some(SSCellType.Error)
-      case "inlineStr" => Some(SSCellType.InlineString)
-      case "s" => Some(SSCellType.SharedString)
-      case "n" => Some(SSCellType.Double)
-      case "b" => Some(SSCellType.Boolean)
-      //TODO da correggere, bisogna vedere che lettera ha
-      case _ => Some(SSCellType.Long)
+      //TODO da correggere, bisogna sistemare tutte le casistiche(vedi sotto per referenza in PDF)
+      case "d" => SSCellType.Date
+      case "e" => SSCellType.Error
+      case "inlineStr" => SSCellType.InlineString
+      case "s" => SSCellType.SharedString
+      case "n" => SSCellType.Double
+      case "b" => SSCellType.Boolean
+      case "str" => SSCellType.Str
+      case null => SSCellType.Double
+      case _ => SSCellType.Unknown
     }
   }
 
+  //TODO controlla perchè ci sono dei tipi non presenti nel PDF di documentazione
+  //PDF Part 4, pag 2840, p. 3.18.12
   object SSCellType extends Enumeration {
     type SSCellType = Value
-    val String, SharedString, InlineString, Boolean, Long, Date, Double, Error, Unknown = Value
+    val String, SharedString, InlineString, Boolean, Number, Str, Date, Double, Error, Unknown = Value
   }
 }
