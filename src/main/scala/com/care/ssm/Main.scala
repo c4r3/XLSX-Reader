@@ -1,7 +1,6 @@
 package com.care.ssm
 
-import com.care.ssm.DocumentSaxParser.SSMCell
-import com.care.ssm.handlers.SheetHandler.SSRawCell
+import com.care.ssm.handlers.SheetHandler.Row
 
 
 /**
@@ -15,13 +14,12 @@ object Main {
     val path = "./src/test/resources/doubles/doubles.xlsx"
     val parser = new DocumentSaxParser
     //val result: ListBuffer[SSRawCell] = parser.readSheet(path, "sheet1")
-    val result: List[SSRawCell] = parser.readSheet(path, "Foglio1", 0, 5)
+    val result: List[Row] = parser.readSheet(path, "Foglio1", 0, 5)
     result.foreach(println)
 
 
-    val resultList: List[SSMCell] = parser.parseRawCells(path, result)
-
-    println(s"Total Cells: ${resultList.length}")
-    resultList.foreach(c => println(c))
+    //val resultList: List[SSMCell] = parser.parseRawCells(path, result)
+    //println(s"Total Cells: ${resultList.length}")
+    //resultList.foreach(c => println(c))
   }
 }

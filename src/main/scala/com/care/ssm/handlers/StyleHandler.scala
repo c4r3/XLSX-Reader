@@ -5,6 +5,7 @@ import com.care.ssm.handlers.StyleHandler.SSCellStyle
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
+import scala.::
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -15,7 +16,7 @@ import scala.collection.mutable.ListBuffer
   */
 class StyleHandler extends DefaultHandler{
 
-  var result: ListBuffer[SSCellStyle] =  ListBuffer[SSCellStyle]()
+  val result: ListBuffer[SSCellStyle] =  ListBuffer[SSCellStyle]()
 
   //Target Tags
   val parentTag = "cellXfs"
@@ -143,9 +144,8 @@ class StyleHandler extends DefaultHandler{
     parentTagEnded
   }
 
-  def getResult: List[SSCellStyle] = {
-    result.toList
-  }
+  def getResult: List[SSCellStyle] = result.toList
+
 }
 
 object StyleHandler {

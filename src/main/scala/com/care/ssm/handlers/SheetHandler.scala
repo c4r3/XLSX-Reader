@@ -3,9 +3,10 @@ package com.care.ssm.handlers
 import java.lang.Integer._
 
 import com.care.ssm.SSMUtils
-import com.care.ssm.SSMUtils.calculateColumn
-import com.care.ssm.handlers.SheetHandler.SSRawCell
+import com.care.ssm.SSMUtils.{SSCellType, extractStream, shared_strings, toDouble, toInt}
+import com.care.ssm.handlers.SheetHandler.{Cell, Row}
 import com.care.ssm.handlers.StyleHandler.SSCellStyle
+import javax.xml.parsers.{SAXParser, SAXParserFactory}
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
@@ -21,9 +22,9 @@ import scala.collection.mutable.ListBuffer
   * @param toRow End reading to this zero-based index
   * @param stylesList The style data
   */
-class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SSCellStyle] = List[SSCellStyle]()) extends DefaultHandler{
+class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SSCellStyle], xlsxPath: String) extends DefaultHandler{
 
-  var result: ListBuffer[SSRawCell] = ListBuffer[SSRawCell]()
+  var result: ListBuffer[Row] = ListBuffer[Row]()
 
   //Child Elements
   val cellTag = "c"
@@ -47,10 +48,12 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
   var valueTagStarted = false
 
   //Temporary variables
-  var cellRowNum = 0
+  var rowNum: Int = -1
   var cellXY = ""
-  var cellStyle = 0
-  var cellType = ""
+  var cellStyleIndex: Int = -1
+  var cellType: String = null
+
+  var rowCellsBuffer: ListBuffer[Cell] = ListBuffer[Cell]()
 
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
 
@@ -89,7 +92,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
 
     if(rowTag.equals(qName)) {
       val rawRowNumValue = attributes.getValue(rowNumAttr)
-      cellRowNum = valueOf(rawRowNumValue)
+      rowNum = valueOf(rawRowNumValue)
     }
 
     if(valueTag.equals(qName)){
@@ -99,13 +102,21 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
     if(cellTag.equals(qName)) {
       //Starting "c" tag, extraction of the attributes
       cellXY = attributes.getValue(xyAttr)
-      cellStyle = SSMUtils.toInt(attributes.getValue(styleAttr)).getOrElse(-1)
+      cellStyleIndex = SSMUtils.toInt(attributes.getValue(styleAttr)).getOrElse(-1)
       cellType = attributes.getValue(typeAttr)
     }
   }
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {
     //if (workDone || isNotRequiredRow) return
+
+    if(rowTag.equals(qName)) {
+      result += Row(rowNum, rowCellsBuffer.toList)
+
+      //reset temp stuff
+      rowCellsBuffer.clear()
+      rowNum = -1
+    }
   }
 
   override def characters(ch: Array[Char], start: Int, length: Int): Unit = {
@@ -114,38 +125,113 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
 
     if(valueTagStarted) {
 
-      //Flushing buffer & reset temporary stuff
-      val style: SSCellStyle = getStyle(stylesList, cellStyle).orNull
-      result += SSRawCell(cellRowNum, calculateColumn(cellXY, cellRowNum), cellXY, cellType, new String(ch, start, length), style)
+      val style: String = if(cellStyleIndex>0) {
+        stylesList(cellStyleIndex).formatCode
+      } else {
+        null
+      }
 
+      //result += SSRawCell(cellRowNum, calculateColumn(cellXY, cellRowNum), cellXY, cellType, new String(ch, start, length), style)
+      rowCellsBuffer += Cell(evaluate(cellType, new String(ch, start, length), style))
+
+      //Flushing buffer & reset temporary stuff
       valueTagStarted = false
       cellXY = ""
-      cellStyle = 0
-      cellType = ""
+      cellStyleIndex = -1
+      cellType = null
     }
   }
 
-  def getStyle(stylesList: List[SSCellStyle], styleIndex: Int): Option[SSCellStyle] =
-    if (stylesList != null && stylesList.size > styleIndex && styleIndex >= 0) {
-      Some(stylesList(styleIndex))
+  def evaluate(typeString: String, stringValue: String, style: String): Any = {
+
+    typeString match {
+      //TODO da correggere, bisogna sistemare tutte le casistiche(vedi sotto per referenza in PDF)
+      case "d" => applyStyle(stringValue, style, isSharedString = true)
+      case "e" => null //TODO da completare
+      case "inlineStr" => applyStyle(stringValue, style, isSharedString = false)
+      case "s" => applyStyle(stringValue, style, isSharedString = true)
+      case "n" => applyStyle(stringValue, style, isSharedString = false)
+      case "b" => applyStyle(stringValue, style, isSharedString = false)
+      case "str" => applyStyle(stringValue, style, isSharedString = false)
+      case null =>  applyStyle(stringValue, style, isSharedString = false)
+      case _ => null
+    }
+  }
+
+  def lookupSharedString(ids: Set[Int]): ListBuffer[String] = {
+
+    val factory: SAXParserFactory = SAXParserFactory.newInstance
+    val parser: SAXParser = factory.newSAXParser
+    val zis = extractStream(xlsxPath, shared_strings)
+    val handler = new SharedStringsHandler(ids)
+
+    if (zis.isDefined) {
+      parser.parse(zis.get, handler)
+    }
+    handler.getResult
+  }
+
+  def applyStyle(rawVal: String, style: String, isSharedString: Boolean): Any = {
+
+    //Lookup into shared string if required
+    val stringValue = if(isSharedString) {
+
+      val index = rawVal.toInt
+      lookupSharedString(Set(index)).head
     } else {
-      None
+      rawVal
     }
 
-  private def isNotRequiredRow: Boolean = {
-    !(fromRow.toInt <= cellRowNum && cellRowNum <= toRow.toInt)
+   style match {
+      case "General" => stringValue
+      case "0" => toInt(stringValue).getOrElse(0)
+      case "0.00" => toDouble(stringValue).getOrElse(0.0)
+      case "#,##0" => toDouble(stringValue).getOrElse(0.0)
+      case "#,##0.00" => toDouble(stringValue).getOrElse(0.0)
+      case "0%" => toDouble(stringValue).getOrElse(0.0)
+      case "0.00%" => toDouble(stringValue).getOrElse(0.0)
+      case "0.00E+00" => toDouble(stringValue).getOrElse(0.0)
+      case "#?/?" => toDouble(stringValue).getOrElse(0.0)
+      case "#??/??" => toDouble(stringValue).getOrElse(0.0)
+      case "mm-dd-yy" => None //FIXME completare
+      case "d-mmm-yy" => None //FIXME completare
+      case "d-mmm" => None //FIXME completare
+      case "mmm-yy" => None //FIXME completare
+      case "h:mm AM/PM" => None //FIXME completare
+      case "h:mm:ss AM/PM" => None //FIXME completare
+      case "h:mm" => None //FIXME completare
+      case "h:mm:ss" => None //FIXME completare
+      case "m/d/yy h:mm" => None //FIXME completare
+      case "#,##0;(#,##0)" => toDouble(stringValue).getOrElse(0.0)
+      case "#,##0 ;[Red](#,##0)" => toDouble(stringValue).getOrElse(0.0)
+      case "#,##0.00;(#,##0.00)" => toDouble(stringValue).getOrElse(0.0)
+      case "#,##0.00;[Red](#,##0.00)" => toDouble(stringValue).getOrElse(0.0)
+      case "mm:ss" => None //FIXME completare
+      case "[h]:mm:ss" => None //FIXME completare
+      case "mmss.0" => None //FIXME completare
+      case "##0.0E+0" => toDouble(stringValue).getOrElse(0.0)
+      case "@" => stringValue
+
+        //FIXMe questi sono custom, così non scala, deve essere parsato lo stile da un metodo ad hoc
+      case """#,##0.00\ "€"""" => toDouble(stringValue).getOrElse(0.0)
+      case "0.0000" => toDouble(stringValue).getOrElse(0.0)
+
+      case _ => stringValue
+    }
   }
 
-  private def workDone: Boolean = {
-    cellRowNum > toRow.toInt
-  }
+  private def isNotRequiredRow: Boolean = !(rowNum<0 || (fromRow.toInt <= rowNum && rowNum <= toRow.toInt))
 
-  def getResult: ListBuffer[SSRawCell] = {
-    result
-  }
+  private def workDone: Boolean = rowNum > toRow.toInt
+
+  def getResult: List[Row] = result.toList
 }
 
 object SheetHandler {
 
-  case class SSRawCell(row: Int, column: Int, xy: String, ctype: String, value: String, style: SSCellStyle)
+  case class Row(index: Int, cells: List[Cell])
+
+  //case class SSRawCell(row: Int, column: Int, xy: String, ctype: String, value: String, style: SSCellStyle)
+  //case class Cell(row: Int, column: Int, xy: String,  value: Any)
+  case class Cell(value: Any)
 }
