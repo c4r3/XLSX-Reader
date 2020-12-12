@@ -3,8 +3,9 @@ package com.care.ssm.handlers
 import java.lang.Integer._
 
 import com.care.ssm.SSMUtils
-import com.care.ssm.SSMUtils.{extractStream, shared_strings, toDouble, toInt}
-import com.care.ssm.handlers.SheetHandler.{Cell, Row}
+import com.care.ssm.SSMUtils.{calculateColumn, extractStream, shared_strings, toDouble, toInt}
+import com.care.ssm.handlers.SheetHandler.CellType.CellType
+import com.care.ssm.handlers.SheetHandler.{Cell, CellType, Row}
 import com.care.ssm.handlers.StyleHandler.CellStyle
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
 import org.xml.sax.Attributes
@@ -139,8 +140,8 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
         null
       }
 
-      //result += SSRawCell(cellRowNum, calculateColumn(cellXY, cellRowNum), cellXY, cellType, new String(ch, start, length), style)
-      rowCellsBuffer += evaluate(cellType, new String(ch, start, length), style)
+      //TODO aggiungere cellXY se serve
+      rowCellsBuffer += evaluate(rowNum: Int, calculateColumn(cellXY, rowNum): Int, cellType, new String(ch, start, length), style)
 
       //Flushing buffer & reset temporary stuff
       valueTagStarted = false
@@ -171,17 +172,17 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     * PDF Part 4, pag 2840, p. 3.18.12
     * @return The detected SSCellType
     */
-  def evaluate(typeString: String, stringValue: String, style: CellStyle): Cell = {
+  def evaluate(rowNum: Int, colNum: Int, typeString: String, stringValue: String, style: CellStyle): Cell =
 
    typeString match {
       //TODO da correggere, bisogna sistemare tutte le casistiche(vedi sotto per referenza in PDF)
-      case "s" | "d" => applyStyle(stringValue, style, isSharedString = true)
+      case "s" | "d" => applyStyle(rowNum, colNum, stringValue, style, isSharedString = true)
       case "e" => null //TODO da completare
       case "str" => null //TODO da completare: cell contains a formula
-      case "inlineStr" | "n" | "b" | null => applyStyle(stringValue, style, isSharedString = false)
+      case "inlineStr" | "n" | "b" | null => applyStyle(rowNum, colNum, stringValue, style, isSharedString = false)
       case _ => null
     }
-  }
+
 
   def lookupSharedString(ids: Set[Int]): List[String] = {
 
@@ -196,7 +197,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     handler.getResult
   }
 
-  def applyStyle(rawVal: String, style: CellStyle, isSharedString: Boolean): Cell = {
+  def applyStyle(rowNum: Int, colNum: Int, rawVal: String, style: CellStyle, isSharedString: Boolean): Cell = {
 
     //Lookup into shared string if required
     val stringValue = if(isSharedString) {
@@ -212,18 +213,50 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
       style.formatCode
     }
 
+    var cellType = CellType.Unknown
+
     val value = formatCode match {
-        
-      case "General" => stringValue
-      case "0" => toInt(stringValue).getOrElse(0)
-      case "0.00" => toDouble(stringValue).getOrElse(0.0)
-      case "#,##0" => toDouble(stringValue).getOrElse(0.0)
-      case "#,##0.00" => toDouble(stringValue).getOrElse(0.0)
-      case "0%" => toDouble(stringValue).getOrElse(0.0)
-      case "0.00%" => toDouble(stringValue.replace("%","")).getOrElse(0.0)
-      case "0.00E+00" => toDouble(stringValue).getOrElse(0.0)
-      case "#?/?" => toDouble(stringValue).getOrElse(0.0)
-      case "#??/??" => toDouble(stringValue).getOrElse(0.0)
+
+      case "General" =>
+        cellType = CellType.String
+        stringValue
+
+      case "0" =>
+        cellType = CellType.Integer
+        toInt(stringValue).getOrElse(0)
+
+      case "0.00" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
+      case "#,##0" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
+      case "#,##0.00" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
+      case "0%" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
+      case "0.00%" =>
+        cellType = CellType.Double
+        toDouble(stringValue.replace("%","")).getOrElse(0.0)
+
+      case "0.00E+00" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
+      case "#?/?" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
+      case "#??/??" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
       case "mm-dd-yy" => None //FIXME completare
       case "d-mmm-yy" => None //FIXME completare
       case "d-mmm" => None //FIXME completare
@@ -233,28 +266,59 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
       case "h:mm" => None //FIXME completare
       case "h:mm:ss" => None //FIXME completare
       case "m/d/yy h:mm" => None //FIXME completare
-      case "#,##0;(#,##0)" => toDouble(stringValue).getOrElse(0.0)
-      case "#,##0 ;[Red](#,##0)" => toDouble(stringValue).getOrElse(0.0)
-      case "#,##0.00;(#,##0.00)" => toDouble(stringValue).getOrElse(0.0)
-      case "#,##0.00;[Red](#,##0.00)" => toDouble(stringValue).getOrElse(0.0)
+
+      case "#,##0;(#,##0)" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
+      case "#,##0 ;[Red](#,##0)" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
+      case "#,##0.00;(#,##0.00)" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
+      case "#,##0.00;[Red](#,##0.00)" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
       case "mm:ss" => None //FIXME completare
       case "[h]:mm:ss" => None //FIXME completare
       case "mmss.0" => None //FIXME completare
-      case "##0.0E+0" => toDouble(stringValue).getOrElse(0.0)
-      case "@" => stringValue
+
+      case "##0.0E+0" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
+      case "@" =>
+        cellType = CellType.String
+        stringValue
 
         //FIXME questi sono custom, così non scala, deve essere parsato lo stile da un metodo ad hoc
-      case """#,##0.00\ "€"""" => toDouble(stringValue).getOrElse(0.0)
-      case "0.0000" => toDouble(stringValue).getOrElse(0.0)
+      case """#,##0.00\ "€"""" =>
+        cellType = CellType.Currency
+        toDouble(stringValue).getOrElse(0.0)
+
+      case "0.0000" =>
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
+
         //FIXME questo è il caso con stringa tra quote + valore numerico con cifre, dovrebbe essere esploso in due campi?
-      case "\"$\"#,##0" => toDouble(stringValue).getOrElse(0.0)
-      case null => stringValue
+      case "\"$\"#,##0" =>
+        cellType = CellType.Currency
+        toDouble(stringValue).getOrElse(0.0)
+
+      case null =>
+        cellType = CellType.String
+        stringValue
+
       case _ =>
         println(s"Unknown style $style")
         null
     }
 
-    Cell(value)
+    Cell(rowNum, colNum, value, cellType)
   }
 
   private def isNotRequiredRow: Boolean = !(rowNum<0 || (fromRow.toInt <= rowNum && rowNum <= toRow.toInt))
@@ -266,6 +330,11 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
 object SheetHandler {
 
+  object CellType extends Enumeration {
+    type CellType = Value
+    val Integer, Double, Long, String, Date, Currency, Unknown = Value
+  }
+
   case class Row(index: Int, cells: List[Cell])
-  case class Cell(value: Any)
+  case class Cell(rowNum: Int, colNum: Int, value: Any, cellType: CellType, meta: Map[String, Any] = null)
 }
