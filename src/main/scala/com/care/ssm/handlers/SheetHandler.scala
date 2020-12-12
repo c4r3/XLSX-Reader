@@ -3,7 +3,7 @@ package com.care.ssm.handlers
 import java.lang.Integer._
 
 import com.care.ssm.SSMUtils
-import com.care.ssm.SSMUtils.{calculateColumn, extractStream, shared_strings, toDouble, toInt}
+import com.care.ssm.SSMUtils.{calculateColumn, extractStream, shared_strings, styles, toDouble, toInt}
 import com.care.ssm.handlers.SheetHandler.CellType.CellType
 import com.care.ssm.handlers.SheetHandler.{Cell, CellType, Row}
 import com.care.ssm.handlers.StyleHandler.CellStyle
@@ -18,12 +18,12 @@ import scala.collection.mutable.ListBuffer
   *
   * @author Massimo Caresana
   *
-  * Handler for Shared Strings File
-  * @param fromRow Start reading from this zero-based index
-  * @param toRow End reading to this zero-based index
+  *         Handler for Shared Strings File
+  * @param fromRow    Start reading from this zero-based index
+  * @param toRow      End reading to this zero-based index
   * @param stylesList The style data
   */
-class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[CellStyle], xlsxPath: String) extends DefaultHandler{
+class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[CellStyle], xlsxPath: String) extends DefaultHandler {
 
   var result: ListBuffer[Row] = ListBuffer[Row]()
 
@@ -61,51 +61,51 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     //TODO controllare, serve solo uno dei due
     if (workDone || isNotRequiredRow) return
 
-    if(formula.equals(qName)) {
+    if (formula.equals(qName)) {
       print("warning: no formula is supported, check the workbook")
       return
     }
 
-    if(richTextInline.equals(qName)) {
+    if (richTextInline.equals(qName)) {
       print("warning: no rich text inline is supported, check the workbook")
       return
     }
 
-    if(richTextInline.equals(qName)) {
+    if (richTextInline.equals(qName)) {
       print("warning: no future feature data storage area supported, check the workbook")
       return
     }
 
-    if(cellMetadataIndexAttr.equals(qName)) {
+    if (cellMetadataIndexAttr.equals(qName)) {
       print("warning: no cell metadata index attribute area supported, check the workbook")
       return
     }
 
-    if(showPhoneticAttr.equals(qName)) {
+    if (showPhoneticAttr.equals(qName)) {
       print("warning: no phonetic attribute area supported, check the workbook")
       return
     }
 
-    if(valueMetadataIndexAttr.equals(qName)) {
+    if (valueMetadataIndexAttr.equals(qName)) {
       print("warning: no value metadata index attribute area supported, check the workbook")
       return
     }
 
-    if(rowTag.equals(qName)) {
+    if (rowTag.equals(qName)) {
       val rawRowNumValue = attributes.getValue(rowNumAttr)
       rowNum = valueOf(rawRowNumValue)
     }
 
-    if(valueTag.equals(qName)){
+    if (valueTag.equals(qName)) {
       valueTagStarted = true
     }
 
-    if(cellTag.equals(qName)) {
+    if (cellTag.equals(qName)) {
       //Starting "c" tag, extraction of the attributes
       cellXY = attributes.getValue(xyAttr)
 
       val styleAttrIndex = attributes.getValue(styleAttr)
-      cellStyleIndex = if(styleAttrIndex!=null) {
+      cellStyleIndex = if (styleAttrIndex != null) {
         SSMUtils.toInt(attributes.getValue(styleAttr)).getOrElse(-1)
       } else {
         -1
@@ -118,7 +118,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
   override def endElement(uri: String, localName: String, qName: String): Unit = {
     if (workDone || isNotRequiredRow) return
 
-    if(rowTag.equals(qName)) {
+    if (rowTag.equals(qName)) {
       result += Row(rowNum, rowCellsBuffer.toList)
 
       //reset temp stuff
@@ -131,14 +131,14 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
     if (workDone || isNotRequiredRow) return
 
-    if(valueTagStarted) {
+    if (valueTagStarted) {
 
       val style: CellStyle =
-        if(cellStyleIndex>0) {
-        stylesList(cellStyleIndex)
-      } else {
-        null
-      }
+        if (cellStyleIndex > 0) {
+          stylesList(cellStyleIndex)
+        } else {
+          null
+        }
 
       //TODO aggiungere cellXY se serve
       rowCellsBuffer += evaluate(rowNum: Int, calculateColumn(cellXY, rowNum): Int, cellType, new String(ch, start, length), style)
@@ -162,19 +162,20 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     * d (Date)                   Cell contains a date in the ISO 8601 format.
     * e (Error)                  Cell containing an error.
     * inlineStr (Inline String)  Cell containing an (inline) rich string, i.e., one not in the shared string table.
-    *                                 If this cell type is used, then the cell value is in the is element rather
-    *                                 than the v element in the cell (c element).
+    * If this cell type is used, then the cell value is in the is element rather
+    * than the v element in the cell (c element).
     * n (Number)                 Cell containing a number.
     * s (Shared String)          Cell containing a shared string.
     * str (String)               Cell containing a formula string
     * </pre>
     *
     * PDF Part 4, pag 2840, p. 3.18.12
+    *
     * @return The detected SSCellType
     */
   def evaluate(rowNum: Int, colNum: Int, typeString: String, stringValue: String, style: CellStyle): Cell =
 
-   typeString match {
+    typeString match {
       //TODO da correggere, bisogna sistemare tutte le casistiche(vedi sotto per referenza in PDF)
       case "s" | "d" => applyStyle(rowNum, colNum, stringValue, style, isSharedString = true)
       case "e" => null //TODO da completare
@@ -200,128 +201,133 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
   def applyStyle(rowNum: Int, colNum: Int, rawVal: String, style: CellStyle, isSharedString: Boolean): Cell = {
 
     //Lookup into shared string if required
-    val stringValue = if(isSharedString) {
+    val stringValue = if (isSharedString) {
       val index = rawVal.toInt
       lookupSharedString(Set(index)).head
     } else {
       rawVal
     }
 
-    val formatCode = if(style==null) {
-      null
-    } else {
-      style.formatCode
-    }
-
+    val formatCode = sanitizeFormatCode(style)
     var cellType = CellType.Unknown
+    val meta = scala.collection.mutable.Map[String,Any]()
 
-    val value = formatCode match {
+    val value = {
 
-      case "General" =>
+      if(formatCode==null) {
         cellType = CellType.String
         stringValue
+      } else if(formatCode == "General" || formatCode=="@") {
 
-      case "0" =>
+        cellType = CellType.String
+        stringValue
+      } else if (formatCode=="0") {
+
         cellType = CellType.Integer
         toInt(stringValue).getOrElse(0)
+      } else if (isCharsSubset(formatCode, "0.")) {
 
-      case "0.00" =>
         cellType = CellType.Double
         toDouble(stringValue).getOrElse(0.0)
+      } else if (isCharsSubset(formatCode, "0.%")) {
 
-      case "#,##0" =>
+        cellType = CellType.Double
+        toDouble(stringValue.replace("%", "")).getOrElse(0.0)
+      } else if (isCharsSubset(formatCode, "0,.#")) {
+
         cellType = CellType.Double
         toDouble(stringValue).getOrElse(0.0)
+      } else if (isCharsSubset(formatCode, "\"0,.#$€ ")) {
 
-      case "#,##0.00" =>
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
+        val first = formatCode.indexOf("\"")
+        val last = formatCode.lastIndexOf("\"")
+        val text = formatCode.substring(first+1, last)
 
-      case "0%" =>
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
+        if(text.trim.length==1) {
+          meta += ("sign" -> text.trim)
+        } else {
+          meta += ("text" -> text.trim)
+        }
 
-      case "0.00%" =>
-        cellType = CellType.Double
-        toDouble(stringValue.replace("%","")).getOrElse(0.0)
+        bisogna applicare il formato se richiesto, vale in tutti i casi
 
-      case "0.00E+00" =>
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
-
-      case "#?/?" =>
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
-
-      case "#??/??" =>
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
-
-      case "mm-dd-yy" => None //FIXME completare
-      case "d-mmm-yy" => None //FIXME completare
-      case "d-mmm" => None //FIXME completare
-      case "mmm-yy" => None //FIXME completare
-      case "h:mm AM/PM" => None //FIXME completare
-      case "h:mm:ss AM/PM" => None //FIXME completare
-      case "h:mm" => None //FIXME completare
-      case "h:mm:ss" => None //FIXME completare
-      case "m/d/yy h:mm" => None //FIXME completare
-
-      case "#,##0;(#,##0)" =>
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
-
-      case "#,##0 ;[Red](#,##0)" =>
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
-
-      case "#,##0.00;(#,##0.00)" =>
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
-
-      case "#,##0.00;[Red](#,##0.00)" =>
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
-
-      case "mm:ss" => None //FIXME completare
-      case "[h]:mm:ss" => None //FIXME completare
-      case "mmss.0" => None //FIXME completare
-
-      case "##0.0E+0" =>
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
-
-      case "@" =>
-        cellType = CellType.String
-        stringValue
-
-        //FIXME questi sono custom, così non scala, deve essere parsato lo stile da un metodo ad hoc
-      case """#,##0.00\ "€"""" =>
         cellType = CellType.Currency
         toDouble(stringValue).getOrElse(0.0)
+      } else {
 
-      case "0.0000" =>
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
+        formatCode match {
 
-        //FIXME questo è il caso con stringa tra quote + valore numerico con cifre, dovrebbe essere esploso in due campi?
-      case "\"$\"#,##0" =>
-        cellType = CellType.Currency
-        toDouble(stringValue).getOrElse(0.0)
+          case "0.00E+00" =>
+            cellType = CellType.Double
+            toDouble(stringValue).getOrElse(0.0)
 
-      case null =>
-        cellType = CellType.String
-        stringValue
+          case "#?/?" =>
+            cellType = CellType.Double
+            toDouble(stringValue).getOrElse(0.0)
 
-      case _ =>
-        println(s"Unknown style $style")
-        null
+          case "#??/??" =>
+            cellType = CellType.Double
+            toDouble(stringValue).getOrElse(0.0)
+
+          case "mm-dd-yy" => None //FIXME completare
+          case "d-mmm-yy" => None //FIXME completare
+          case "d-mmm" => None //FIXME completare
+          case "mmm-yy" => None //FIXME completare
+          case "h:mm AM/PM" => None //FIXME completare
+          case "h:mm:ss AM/PM" => None //FIXME completare
+          case "h:mm" => None //FIXME completare
+          case "h:mm:ss" => None //FIXME completare
+          case "m/d/yy h:mm" => None //FIXME completare
+          case "mm:ss" => None //FIXME completare
+          case "[h]:mm:ss" => None //FIXME completare
+          case "mmss.0" => None //FIXME completare
+          case "##0.0E+0" =>
+            cellType = CellType.Double
+            toDouble(stringValue).getOrElse(0.0)
+          case _ =>
+            println(s"Unknown style $style")
+            null
+        }
+      }
     }
 
-    Cell(rowNum, colNum, value, cellType)
+    Cell(rowNum, colNum, value, cellType, meta.toMap)
   }
 
-  private def isNotRequiredRow: Boolean = !(rowNum<0 || (fromRow.toInt <= rowNum && rowNum <= toRow.toInt))
+  def sanitizeFormatCode(style: CellStyle): String = {
+    if (style == null) {
+      null
+    } else {
+
+      //Sanitize useless char
+      val temp = style.formatCode.replace("\\","")
+
+      //Rimozione eventuale inutile suffisso
+      //#,##0.00;(#,##0.00) -> #,##0.00
+      if(temp.contains(";")){
+        temp.substring(0, temp.indexOf(";"))
+      } else {
+        temp
+      }
+    }
+  }
+
+  def isCharsSubset(formatCode: String, chars: String): Boolean = {
+
+    if (formatCode == null || formatCode.trim.isEmpty) return false
+
+    val charsArray = chars.toCharArray
+
+    for (c <- formatCode) {
+
+      if (!charsArray.contains(c)) {
+        return false
+      }
+    }
+    true
+  }
+
+  private def isNotRequiredRow: Boolean = !(rowNum < 0 || (fromRow.toInt <= rowNum && rowNum <= toRow.toInt))
 
   private def workDone: Boolean = rowNum > toRow.toInt
 
@@ -336,5 +342,7 @@ object SheetHandler {
   }
 
   case class Row(index: Int, cells: List[Cell])
+
   case class Cell(rowNum: Int, colNum: Int, value: Any, cellType: CellType, meta: Map[String, Any] = null)
+
 }
