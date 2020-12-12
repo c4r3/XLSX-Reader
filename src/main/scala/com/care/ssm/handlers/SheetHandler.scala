@@ -115,7 +115,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
   }
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {
-    //if (workDone || isNotRequiredRow) return
+    if (workDone || isNotRequiredRow) return
 
     if(rowTag.equals(qName)) {
       result += Row(rowNum, rowCellsBuffer.toList)
@@ -132,14 +132,15 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
     if(valueTagStarted) {
 
-      val style: String = if(cellStyleIndex>0) {
-        stylesList(cellStyleIndex).formatCode
+      val style: CellStyle =
+        if(cellStyleIndex>0) {
+        stylesList(cellStyleIndex)
       } else {
         null
       }
 
       //result += SSRawCell(cellRowNum, calculateColumn(cellXY, cellRowNum), cellXY, cellType, new String(ch, start, length), style)
-      rowCellsBuffer += Cell(evaluate(cellType, new String(ch, start, length), style))
+      rowCellsBuffer += evaluate(cellType, new String(ch, start, length), style)
 
       //Flushing buffer & reset temporary stuff
       valueTagStarted = false
@@ -170,18 +171,14 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     * PDF Part 4, pag 2840, p. 3.18.12
     * @return The detected SSCellType
     */
-  def evaluate(typeString: String, stringValue: String, style: String): Any = {
+  def evaluate(typeString: String, stringValue: String, style: CellStyle): Cell = {
 
-    typeString match {
+   typeString match {
       //TODO da correggere, bisogna sistemare tutte le casistiche(vedi sotto per referenza in PDF)
-      case "d" => applyStyle(stringValue, style, isSharedString = true)
+      case "s" | "d" => applyStyle(stringValue, style, isSharedString = true)
       case "e" => null //TODO da completare
-      case "inlineStr" => applyStyle(stringValue, style, isSharedString = false)
-      case "s" => applyStyle(stringValue, style, isSharedString = true)
-      case "n" => applyStyle(stringValue, style, isSharedString = false)
-      case "b" => applyStyle(stringValue, style, isSharedString = false)
-      case "str" => applyStyle(stringValue, style, isSharedString = false)
-      case null =>  applyStyle(stringValue, style, isSharedString = false)
+      case "str" => null //TODO da completare: cell contains a formula
+      case "inlineStr" | "n" | "b" | null => applyStyle(stringValue, style, isSharedString = false)
       case _ => null
     }
   }
@@ -199,7 +196,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     handler.getResult
   }
 
-  def applyStyle(rawVal: String, style: String, isSharedString: Boolean): Any = {
+  def applyStyle(rawVal: String, style: CellStyle, isSharedString: Boolean): Cell = {
 
     //Lookup into shared string if required
     val stringValue = if(isSharedString) {
@@ -209,7 +206,14 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
       rawVal
     }
 
-   style match {
+    val formatCode = if(style==null) {
+      null
+    } else {
+      style.formatCode
+    }
+
+    val value = formatCode match {
+        
       case "General" => stringValue
       case "0" => toInt(stringValue).getOrElse(0)
       case "0.00" => toDouble(stringValue).getOrElse(0.0)
@@ -242,12 +246,15 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
         //FIXME questi sono custom, così non scala, deve essere parsato lo stile da un metodo ad hoc
       case """#,##0.00\ "€"""" => toDouble(stringValue).getOrElse(0.0)
       case "0.0000" => toDouble(stringValue).getOrElse(0.0)
+        //FIXME questo è il caso con stringa tra quote + valore numerico con cifre, dovrebbe essere esploso in due campi?
       case "\"$\"#,##0" => toDouble(stringValue).getOrElse(0.0)
       case null => stringValue
       case _ =>
         println(s"Unknown style $style")
         null
     }
+
+    Cell(value)
   }
 
   private def isNotRequiredRow: Boolean = !(rowNum<0 || (fromRow.toInt <= rowNum && rowNum <= toRow.toInt))

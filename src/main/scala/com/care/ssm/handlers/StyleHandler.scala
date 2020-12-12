@@ -1,7 +1,7 @@
 package com.care.ssm.handlers
 
 import com.care.ssm.SSMUtils._
-import com.care.ssm.handlers.StyleHandler.CellStyle
+import com.care.ssm.handlers.StyleHandler.{CellStyle, lookupFormatCode}
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
@@ -53,21 +53,24 @@ class StyleHandler extends DefaultHandler{
       val numFmtId = toInt(attributes.getValue(numFmtIdTag)).getOrElse(-1)
       val formatCode = attributes.getValue(formatCodeTag)
       //List is filled before the parsing of the style tags
-      numFormatsList += CellStyle(numFmtId,formatCode)
+      numFormatsList += CellStyle(numFmtId,formatCode, isFormatNumberApply = false)
     }
 
     if(parentTagStarted && targetTag.equals(qName)) {
 
+      val isFormatNumberApply = isApplyNumberFormatRequired(attributes.getValue(applyNumberFormatTag))
+
       toInt(attributes.getValue(numFmtIdTag)) match {
         case Some(num) =>
 
-          //Se il numFmtId è presente nella numFormatList allora prendo quel valore, altrimenti significa che è uno stile standard (definito a priori)
-          numFormatsList.find( sCell => sCell.numFmtId == num) match {
+          //Se il numFmtId è presente nella numFormatList allora prendo quel valore, altrimenti significa che è uno
+          // stile standard (definito a priori)
+          numFormatsList.find(sCell => sCell.numFmtId == num) match {
 
-            case Some(style) => result += style
+            case Some(style) => result += CellStyle(style.numFmtId, style.formatCode, isFormatNumberApply)
             case None =>
               val currentNumFormat = lookupFormatCode(num)
-              result += CellStyle(num, currentNumFormat)
+              result += CellStyle(num, currentNumFormat, isFormatNumberApply)
           }
         case None => result += null
       }
@@ -76,8 +79,40 @@ class StyleHandler extends DefaultHandler{
     }
   }
 
+  def isApplyNumberFormatRequired(applyString: String): Boolean = {
+
+    if(applyString==null || applyString.trim.isEmpty) return false
+
+    toInt(applyString) match {
+      case Some(applyVal) => applyVal==1
+      case None => false
+    }
+  }
+
+  override def endElement(uri: String, localName: String, qName: String): Unit = {
+
+    if (workDone) return
+
+    if(!numFmtsEnded && numFmtsTag.equals(qName)){
+      numFmtsEnded = true
+    }
+
+    if (!parentTagEnded && parentTag.equals(qName)){
+      parentTagEnded = true
+    }
+  }
+
+  private def workDone: Boolean = parentTagEnded
+
+  def getResult: List[CellStyle] = result.toList
+}
+
+object StyleHandler {
+
+  case class CellStyle(numFmtId: Int, formatCode: String, isFormatNumberApply: Boolean)
+
   def lookupFormatCode(c : Int): String =
-   c match {
+    c match {
       case 0 => "General"
       case 1 => "0"
       case 2 => "0.00"
@@ -110,25 +145,4 @@ class StyleHandler extends DefaultHandler{
         print(s"UNKNOWN numfmtId $c")
         null
     }
-
-  override def endElement(uri: String, localName: String, qName: String): Unit = {
-
-    if (workDone) return
-
-    if(!numFmtsEnded && numFmtsTag.equals(qName)){
-      numFmtsEnded = true
-    }
-
-    if (!parentTagEnded && parentTag.equals(qName)){
-      parentTagEnded = true
-    }
-  }
-
-  private def workDone: Boolean = parentTagEnded
-
-  def getResult: List[CellStyle] = result.toList
-}
-
-object StyleHandler {
-  case class CellStyle(numFmtId: Int, formatCode: String)
 }
