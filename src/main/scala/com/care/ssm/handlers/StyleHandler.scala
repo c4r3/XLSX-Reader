@@ -1,11 +1,10 @@
 package com.care.ssm.handlers
 
 import com.care.ssm.SSMUtils._
-import com.care.ssm.handlers.StyleHandler.SSCellStyle
+import com.care.ssm.handlers.StyleHandler.CellStyle
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
-import scala.::
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -16,7 +15,7 @@ import scala.collection.mutable.ListBuffer
   */
 class StyleHandler extends DefaultHandler{
 
-  val result: ListBuffer[SSCellStyle] =  ListBuffer[SSCellStyle]()
+  val result: ListBuffer[CellStyle] =  ListBuffer[CellStyle]()
 
   //Target Tags
   val parentTag = "cellXfs"
@@ -36,7 +35,7 @@ class StyleHandler extends DefaultHandler{
   val formatCodeTag = "formatCode"
 
   //Number formats List (defined within <numFmts>)
-  var numFormatsList = new ListBuffer[SSCellStyle]()
+  var numFormatsList = new ListBuffer[CellStyle]()
 
   //Position/Style Index
   var index = 0
@@ -54,34 +53,22 @@ class StyleHandler extends DefaultHandler{
       val numFmtId = toInt(attributes.getValue(numFmtIdTag)).getOrElse(-1)
       val formatCode = attributes.getValue(formatCodeTag)
       //List is filled before the parsing of the style tags
-      numFormatsList += SSCellStyle(numFmtId,formatCode)
+      numFormatsList += CellStyle(numFmtId,formatCode)
     }
 
     if(parentTagStarted && targetTag.equals(qName)) {
-//      //Starting target tag
-//      val applyNumberFormatTh = attributes.getValue(applyNumberFormatTag)
-//
-//      if (applyNumberFormatTh==null || applyNumberFormatTh.trim.isEmpty) {
-//        result += null
-//      } else {
-//        val numFormatId = toInt(attributes.getValue(numFmtIdTag)).getOrElse(-1)
-//        val formatCode = numFormatsList(Integer.valueOf(applyNumberFormatTh) - 1).formatCode
-//        result += SSCellStyle(numFormatId, formatCode)
-//      }
 
       toInt(attributes.getValue(numFmtIdTag)) match {
-        case Some(num) => {
+        case Some(num) =>
 
           //Se il numFmtId è presente nella numFormatList allora prendo quel valore, altrimenti significa che è uno stile standard (definito a priori)
           numFormatsList.find( sCell => sCell.numFmtId == num) match {
 
             case Some(style) => result += style
-            case None => {
+            case None =>
               val currentNumFormat = lookupFormatCode(num)
-              result += SSCellStyle(num, currentNumFormat)
-            }
+              result += CellStyle(num, currentNumFormat)
           }
-        }
         case None => result += null
       }
 
@@ -89,8 +76,8 @@ class StyleHandler extends DefaultHandler{
     }
   }
 
-  def lookupFormatCode(c : Int): String = {
-    val res = c match {
+  def lookupFormatCode(c : Int): String =
+   c match {
       case 0 => "General"
       case 1 => "0"
       case 2 => "0.00"
@@ -119,13 +106,10 @@ class StyleHandler extends DefaultHandler{
       case 47 => "mmss.0"
       case 48 => "##0.0E+0"
       case 49 => "@"
-      case _ => {
+      case _ =>
         print(s"UNKNOWN numfmtId $c")
         null
-      }
     }
-    res
-  }
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {
 
@@ -140,14 +124,11 @@ class StyleHandler extends DefaultHandler{
     }
   }
 
-  private def workDone: Boolean = {
-    parentTagEnded
-  }
+  private def workDone: Boolean = parentTagEnded
 
-  def getResult: List[SSCellStyle] = result.toList
-
+  def getResult: List[CellStyle] = result.toList
 }
 
 object StyleHandler {
-  case class SSCellStyle(numFmtId: Int, formatCode: String)
+  case class CellStyle(numFmtId: Int, formatCode: String)
 }

@@ -3,9 +3,9 @@ package com.care.ssm.handlers
 import java.lang.Integer._
 
 import com.care.ssm.SSMUtils
-import com.care.ssm.SSMUtils.{SSCellType, extractStream, shared_strings, toDouble, toInt}
+import com.care.ssm.SSMUtils.{extractStream, shared_strings, toDouble, toInt}
 import com.care.ssm.handlers.SheetHandler.{Cell, Row}
-import com.care.ssm.handlers.StyleHandler.SSCellStyle
+import com.care.ssm.handlers.StyleHandler.CellStyle
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
@@ -22,7 +22,7 @@ import scala.collection.mutable.ListBuffer
   * @param toRow End reading to this zero-based index
   * @param stylesList The style data
   */
-class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SSCellStyle], xlsxPath: String) extends DefaultHandler{
+class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[CellStyle], xlsxPath: String) extends DefaultHandler{
 
   var result: ListBuffer[Row] = ListBuffer[Row]()
 
@@ -149,6 +149,27 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
     }
   }
 
+  /**
+    *
+    * https://msdn.microsoft.com/library/office/documentformat.openxml.spreadsheet.cell.aspx
+    * <pre>
+    * -------------------------------------------------------------------------
+    * Enumeration Value          Description
+    * -------------------------------------------------------------------------
+    * b (Boolean)                Cell containing a boolean.
+    * d (Date)                   Cell contains a date in the ISO 8601 format.
+    * e (Error)                  Cell containing an error.
+    * inlineStr (Inline String)  Cell containing an (inline) rich string, i.e., one not in the shared string table.
+    *                                 If this cell type is used, then the cell value is in the is element rather
+    *                                 than the v element in the cell (c element).
+    * n (Number)                 Cell containing a number.
+    * s (Shared String)          Cell containing a shared string.
+    * str (String)               Cell containing a formula string
+    * </pre>
+    *
+    * PDF Part 4, pag 2840, p. 3.18.12
+    * @return The detected SSCellType
+    */
   def evaluate(typeString: String, stringValue: String, style: String): Any = {
 
     typeString match {
@@ -165,7 +186,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
     }
   }
 
-  def lookupSharedString(ids: Set[Int]): ListBuffer[String] = {
+  def lookupSharedString(ids: Set[Int]): List[String] = {
 
     val factory: SAXParserFactory = SAXParserFactory.newInstance
     val parser: SAXParser = factory.newSAXParser
@@ -218,14 +239,14 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
       case "##0.0E+0" => toDouble(stringValue).getOrElse(0.0)
       case "@" => stringValue
 
-        //FIXMe questi sono custom, così non scala, deve essere parsato lo stile da un metodo ad hoc
+        //FIXME questi sono custom, così non scala, deve essere parsato lo stile da un metodo ad hoc
       case """#,##0.00\ "€"""" => toDouble(stringValue).getOrElse(0.0)
       case "0.0000" => toDouble(stringValue).getOrElse(0.0)
+      case "\"$\"#,##0" => toDouble(stringValue).getOrElse(0.0)
       case null => stringValue
-      case _ => {
+      case _ =>
         println(s"Unknown style $style")
         null
-      }
     }
   }
 
@@ -239,8 +260,5 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
 object SheetHandler {
 
   case class Row(index: Int, cells: List[Cell])
-
-  //case class SSRawCell(row: Int, column: Int, xy: String, ctype: String, value: String, style: SSCellStyle)
-  //case class Cell(row: Int, column: Int, xy: String,  value: Any)
   case class Cell(value: Any)
 }

@@ -5,8 +5,6 @@ import java.lang.Math.pow
 import java.lang.String.valueOf
 import java.util.zip.ZipInputStream
 
-import com.care.ssm.SSMUtils.SSCellType.SSCellType
-
 /**
   * @author Massimo Caresana
   */
@@ -56,11 +54,10 @@ object SSMUtils {
     try {
       Some(s.toInt)
     } catch {
-      case ex : Exception => {
+      case ex : Exception =>
         ex.printStackTrace()
         println(s"Error toInt parsing $s")
-      }
-      None
+        None
     }
   }
 
@@ -68,10 +65,10 @@ object SSMUtils {
     try {
       Some(s.toDouble)
     } catch {
-      case _: Exception => {
+      case ex : Exception =>
+        ex.printStackTrace()
         println(s"Error toDouble parsing $s")
         None
-      }
     }
   }
 
@@ -79,57 +76,10 @@ object SSMUtils {
     try {
       Some(s.toLong)
     } catch {
-      case _: Exception => {
+      case ex : Exception =>
+        ex.printStackTrace()
         println(s"Error toLong parsing $s")
         None
-      }
     }
-  }
-
-  //TODO metodo per effettuare la detection del tipo della cella: sarebbe un valore di un enum.
-  //TODO In tal modo ogni cella avrà solo un int per identificare il tipo e non un int e una stringa
-  //TODO si risparmia memoria
-  /**
-    *
-    * https://msdn.microsoft.com/library/office/documentformat.openxml.spreadsheet.cell.aspx
-    * <pre>
-    * -------------------------------------------------------------------------
-    * Enumeration Value          Description
-    * -------------------------------------------------------------------------
-    * b (Boolean)                Cell containing a boolean.
-    * d (Date)                   Cell contains a date in the ISO 8601 format.
-    * e (Error)                  Cell containing an error.
-    * inlineStr (Inline String)  Cell containing an (inline) rich string, i.e., one not in the shared string table.
-    *                                 If this cell type is used, then the cell value is in the is element rather
-    *                                 than the v element in the cell (c element).
-    * n (Number)                 Cell containing a number.
-    * s (Shared String)          Cell containing a shared string.
-    * str (String)               Cell containing a formula string
-    * </pre>
-    *
-    * @param rawType The type string value
-    * @return The detected SSCellType
-    */
-  def detectCellType(rawType: String): SSCellType = {
-
-    rawType match {
-      //TODO da correggere, bisogna sistemare tutte le casistiche(vedi sotto per referenza in PDF)
-      case "d" => SSCellType.Date
-      case "e" => SSCellType.Error
-      case "inlineStr" => SSCellType.InlineString
-      case "s" => SSCellType.SharedString
-      case "n" => SSCellType.Double
-      case "b" => SSCellType.Boolean
-      case "str" => SSCellType.Str
-      case null => SSCellType.Double
-      case _ => SSCellType.Unknown
-    }
-  }
-
-  //TODO controlla perchè ci sono dei tipi non presenti nel PDF di documentazione
-  //PDF Part 4, pag 2840, p. 3.18.12
-  object SSCellType extends Enumeration {
-    type SSCellType = Value
-    val String, SharedString, InlineString, Boolean, Number, Str, Date, Double, Error, Unknown = Value
   }
 }

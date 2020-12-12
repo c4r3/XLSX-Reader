@@ -1,6 +1,6 @@
 package com.care.ssm
 
-import com.care.ssm.handlers.StyleHandler.SSCellStyle
+import com.care.ssm.handlers.StyleHandler.CellStyle
 import org.scalatest.PrivateMethodTester
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -21,17 +21,17 @@ class DocumentSaxParserTest extends AnyFlatSpec with PrivateMethodTester with Ma
   "lookup cells style " should " be correct " in {
 
     val parser = new DocumentSaxParser
-    val method = PrivateMethod[ListBuffer[SSCellStyle]](Symbol("lookupCellsStyles"))
-    val result: ListBuffer[SSCellStyle] = parser invokePrivate method("./src/test/resources/sample_1/sample.xlsx")
+    val method = PrivateMethod[ListBuffer[CellStyle]](Symbol("lookupCellsStyles"))
+    val result: ListBuffer[CellStyle] = parser invokePrivate method("./src/test/resources/sample_1/sample.xlsx")
 
     result should have size 5
     result.head should be (null)
     result(1) should not be null
-    result(1) should be (SSCellStyle(164, "\"$\"#,##0"))
+    result(1) should be (CellStyle(164, "\"$\"#,##0"))
     result(2) should be (null)
     result(3) should be (null)
     result(4) should not be null
-    result(4) should be (SSCellStyle(1, "\"$\"#,##0"))
+    result(4) should be (CellStyle(1, "\"$\"#,##0"))
   }
 
   "lookup shared string " should " be correct " in {

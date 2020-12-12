@@ -59,11 +59,10 @@ class BaseHandler(targetTag: String, targetAttribute: String = "", occurrence: I
     }
   }
 
-  //negative occurrence -> all values
-  //[0,[ -> the corresponding value(s)
+  //negative occurrence -> all values: [0,[ -> the corresponding value(s)
   private def workDone: Boolean = occurrence > 0 && result.size == occurrence
 
   private def isAttributeRequired: Boolean = targetAttribute != null && !targetAttribute.trim.isEmpty
 
-  def getResult: ListBuffer[String] = result
+  def getResult: List[String] = result.toList
 }

@@ -1,7 +1,6 @@
 package com.care.ssm
 
-import com.care.ssm.SSMUtils.SSCellType._
-import com.care.ssm.SSMUtils.{calculateColumn, detectCellType, extractStream}
+import com.care.ssm.SSMUtils.{calculateColumn, extractStream}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -24,17 +23,5 @@ class SSMUtilsTest extends AnyFlatSpec with Matchers {
     val result_1 = extractStream("./src/test/resources/sample_1/sample.xlsx", "not-existing-file")
     result_1 should not be null
     result_1.isDefined should be (false)
-  }
-
-  "The cell type detection " should " be correct" in {
-
-    detectCellType("d") should be(Date)
-    detectCellType("e") should be(Error)
-    detectCellType("inlineStr") should be(InlineString)
-    detectCellType("s") should be(SharedString)
-    detectCellType("n") should be(Double)
-    detectCellType(null) should be(Double)
-    detectCellType("not-existing") should be(Long)
-    //TODO completare con i casi mancanti
   }
 }

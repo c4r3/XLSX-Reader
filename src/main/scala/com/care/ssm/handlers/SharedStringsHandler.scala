@@ -23,18 +23,18 @@ class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandle
 
     if (workDone) return
 
-    if (isTTag(qName)) {
+    if (isTargetTag(qName)) {
       targetTagEnded = false
     }
   }
 
-  private def isTTag(tag: String): Boolean = targetTag.equals(tag)
+  private def isTargetTag(tag: String): Boolean = targetTag.equals(tag)
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {
 
     if (workDone) return
 
-    if (isTTag(qName)) {
+    if (isTargetTag(qName)) {
       counter += 1
       targetTagEnded = true
     }
@@ -51,5 +51,5 @@ class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandle
 
   private def workDone: Boolean = indexes.nonEmpty && result.length == indexes.size
 
-  def getResult: ListBuffer[String] = result
+  def getResult: List[String] = result.toList
 }
