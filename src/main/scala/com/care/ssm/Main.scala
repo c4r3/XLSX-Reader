@@ -14,7 +14,7 @@ object Main {
     val path = "./src/test/resources/doubles/doubles.xlsx"
     val parser = new DocumentSaxParser
     //val result: ListBuffer[SSRawCell] = parser.readSheet(path, "sheet1")
-    val result: List[Row] = parser.readSheet(path, "Foglio1", 0, 5)
+    val result: List[Row] = parser.readSheet(path, "Foglio1")
     result.foreach(println)
 
 

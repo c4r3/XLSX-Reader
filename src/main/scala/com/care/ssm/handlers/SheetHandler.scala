@@ -102,7 +102,14 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
     if(cellTag.equals(qName)) {
       //Starting "c" tag, extraction of the attributes
       cellXY = attributes.getValue(xyAttr)
-      cellStyleIndex = SSMUtils.toInt(attributes.getValue(styleAttr)).getOrElse(-1)
+
+      val styleAttrIndex = attributes.getValue(styleAttr)
+      cellStyleIndex = if(styleAttrIndex!=null) {
+        SSMUtils.toInt(attributes.getValue(styleAttr)).getOrElse(-1)
+      } else {
+        -1
+      }
+
       cellType = attributes.getValue(typeAttr)
     }
   }
@@ -175,7 +182,6 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
 
     //Lookup into shared string if required
     val stringValue = if(isSharedString) {
-
       val index = rawVal.toInt
       lookupSharedString(Set(index)).head
     } else {
@@ -189,7 +195,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
       case "#,##0" => toDouble(stringValue).getOrElse(0.0)
       case "#,##0.00" => toDouble(stringValue).getOrElse(0.0)
       case "0%" => toDouble(stringValue).getOrElse(0.0)
-      case "0.00%" => toDouble(stringValue).getOrElse(0.0)
+      case "0.00%" => toDouble(stringValue.replace("%","")).getOrElse(0.0)
       case "0.00E+00" => toDouble(stringValue).getOrElse(0.0)
       case "#?/?" => toDouble(stringValue).getOrElse(0.0)
       case "#??/??" => toDouble(stringValue).getOrElse(0.0)
@@ -215,8 +221,11 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[SS
         //FIXMe questi sono custom, così non scala, deve essere parsato lo stile da un metodo ad hoc
       case """#,##0.00\ "€"""" => toDouble(stringValue).getOrElse(0.0)
       case "0.0000" => toDouble(stringValue).getOrElse(0.0)
-
-      case _ => stringValue
+      case null => stringValue
+      case _ => {
+        println(s"Unknown style $style")
+        null
+      }
     }
   }
 

@@ -56,7 +56,11 @@ object SSMUtils {
     try {
       Some(s.toInt)
     } catch {
-      case _: Exception => None
+      case ex : Exception => {
+        ex.printStackTrace()
+        println(s"Error toInt parsing $s")
+      }
+      None
     }
   }
 
@@ -64,7 +68,10 @@ object SSMUtils {
     try {
       Some(s.toDouble)
     } catch {
-      case _: Exception => None
+      case _: Exception => {
+        println(s"Error toDouble parsing $s")
+        None
+      }
     }
   }
 
@@ -72,7 +79,10 @@ object SSMUtils {
     try {
       Some(s.toLong)
     } catch {
-      case _: Exception => None
+      case _: Exception => {
+        println(s"Error toLong parsing $s")
+        None
+      }
     }
   }
 
