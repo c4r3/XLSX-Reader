@@ -12,6 +12,7 @@ import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
 import scala.collection.mutable.ListBuffer
+import scala.util.control.Exception.allCatch
 
 
 /**
@@ -133,7 +134,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
     if (valueTagStarted) {
 
-      val style: CellStyle =
+      val style =
         if (cellStyleIndex > 0) {
           stylesList(cellStyleIndex)
         } else {
@@ -141,7 +142,9 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
         }
 
       //TODO aggiungere cellXY se serve
-      rowCellsBuffer += evaluate(rowNum: Int, calculateColumn(cellXY, rowNum): Int, cellType, new String(ch, start, length), style)
+      val colNum = calculateColumn(cellXY, rowNum)
+      val stringValue = new String(ch, start, length)
+      rowCellsBuffer += evaluate(rowNum, colNum, cellType, stringValue, style)
 
       //Flushing buffer & reset temporary stuff
       valueTagStarted = false
@@ -198,6 +201,10 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     handler.getResult
   }
 
+  def isInt(s: String): Boolean = (allCatch opt s.toInt).isDefined
+
+  def isDouble(s: String): Boolean = (allCatch opt s.toDouble).isDefined
+
   def applyStyle(rowNum: Int, colNum: Int, rawVal: String, style: CellStyle, isSharedString: Boolean): Cell = {
 
     //Lookup into shared string if required
@@ -210,18 +217,63 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
     val formatCode = sanitizeFormatCode(style)
     var cellType = CellType.Unknown
-    val meta = scala.collection.mutable.Map[String,Any]()
+    val meta = scala.collection.mutable.Map[String, Any]()
 
     val value = {
 
-      if(formatCode==null) {
-        cellType = CellType.String
-        stringValue
-      } else if(formatCode == "General" || formatCode=="@") {
+      if (formatCode == null && isSharedString) {
 
-        cellType = CellType.String
-        stringValue
-      } else if (formatCode=="0") {
+        val w = if(isInt(stringValue)) {
+
+          cellType = CellType.Integer
+          toInt(stringValue).getOrElse(0)
+        } else if(isDouble(stringValue)) {
+
+          cellType = CellType.Double
+          toDouble(stringValue).getOrElse(0.0)
+        } else {
+          cellType = CellType.String
+          stringValue
+        }
+        w
+      } else if (formatCode == null && !isSharedString) {
+
+        val v: Any = if (stringValue.contains(".")) {
+          cellType = CellType.Double
+          toDouble(stringValue).getOrElse(0.0)
+        } else {
+          cellType = CellType.Integer
+          toInt(stringValue).getOrElse(0)
+        }
+        v
+      } else if (formatCode == "General") {
+
+        val w = if(isInt(stringValue)) {
+
+          cellType = CellType.Integer
+          toInt(stringValue).getOrElse(0)
+        } else if(isDouble(stringValue)) {
+
+          cellType = CellType.Double
+          toDouble(stringValue).getOrElse(0.0)
+        }
+        w
+      } else if (formatCode == "@") {
+
+        val w = if(isInt(stringValue)) {
+
+          cellType = CellType.Integer
+          toInt(stringValue).getOrElse(0)
+        } else if(isDouble(stringValue)) {
+
+          cellType = CellType.Double
+          toDouble(stringValue).getOrElse(0.0)
+        } else {
+          cellType = CellType.String
+          stringValue
+        }
+        w
+      } else if (formatCode == "0") {
 
         cellType = CellType.Integer
         toInt(stringValue).getOrElse(0)
@@ -241,15 +293,15 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
         val first = formatCode.indexOf("\"")
         val last = formatCode.lastIndexOf("\"")
-        val text = formatCode.substring(first+1, last)
+        val text = formatCode.substring(first + 1, last)
 
-        if(text.trim.length==1) {
+        if (text.trim.length == 1) {
           meta += ("sign" -> text.trim)
         } else {
           meta += ("text" -> text.trim)
         }
 
-        bisogna applicare il formato se richiesto, vale in tutti i casi
+        //TODO bisogna applicare il formato se richiesto, vale in tutti i casi
 
         cellType = CellType.Currency
         toDouble(stringValue).getOrElse(0.0)
@@ -291,7 +343,13 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
       }
     }
 
-    Cell(rowNum, colNum, value, cellType, meta.toMap)
+    val metaMap = if (meta != null && meta.isEmpty) {
+      null
+    } else {
+      meta.toMap
+    }
+
+    Cell(rowNum, colNum, value, cellType, metaMap)
   }
 
   def sanitizeFormatCode(style: CellStyle): String = {
@@ -300,11 +358,11 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     } else {
 
       //Sanitize useless char
-      val temp = style.formatCode.replace("\\","")
+      val temp = style.formatCode.replace("\\", "").trim
 
       //Rimozione eventuale inutile suffisso
       //#,##0.00;(#,##0.00) -> #,##0.00
-      if(temp.contains(";")){
+      if (temp.contains(";")) {
         temp.substring(0, temp.indexOf(";"))
       } else {
         temp
