@@ -256,6 +256,9 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
           cellType = CellType.Double
           toDouble(stringValue).getOrElse(0.0)
+        } else {
+          cellType = CellType.String
+          stringValue
         }
         w
       } else if (formatCode == "@") {
