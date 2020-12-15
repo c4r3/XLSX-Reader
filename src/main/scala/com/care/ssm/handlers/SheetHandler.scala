@@ -241,9 +241,12 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
         val v: Any = if (stringValue.contains(".")) {
           cellType = CellType.Double
           toDouble(stringValue).getOrElse(0.0)
-        } else {
+        } else if(isInt(stringValue)) {
           cellType = CellType.Integer
           toInt(stringValue).getOrElse(0)
+        }   else {
+          cellType = CellType.String
+          stringValue
         }
         v
       } else if (formatCode == "General") {
