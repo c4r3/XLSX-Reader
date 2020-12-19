@@ -3,9 +3,9 @@ package com.care.ssm.handlers
 import java.lang.Integer._
 
 import com.care.ssm.SSMUtils
-import com.care.ssm.SSMUtils.{calculateColumn, extractStream, shared_strings, styles, toDouble, toInt}
+import com.care.ssm.SSMUtils.{calculateColumn, extractStream, rels, shared_strings, styles, toDouble, toInt}
 import com.care.ssm.handlers.SheetHandler.CellType.CellType
-import com.care.ssm.handlers.SheetHandler.{Cell, CellType, Row}
+import com.care.ssm.handlers.SheetHandler.{Cell, CellType, Row, lookupSharedString, sanitizeFormatCode}
 import com.care.ssm.handlers.StyleHandler.CellStyle
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
 import org.xml.sax.Attributes
@@ -187,20 +187,6 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
       case _ => null
     }
 
-
-  def lookupSharedString(ids: Set[Int]): List[String] = {
-
-    val factory: SAXParserFactory = SAXParserFactory.newInstance
-    val parser: SAXParser = factory.newSAXParser
-    val zis = extractStream(xlsxPath, shared_strings)
-    val handler = new SharedStringsHandler(ids)
-
-    if (zis.isDefined) {
-      parser.parse(zis.get, handler)
-    }
-    handler.getResult
-  }
-
   def isInt(s: String): Boolean = (allCatch opt s.toInt).isDefined
 
   def isDouble(s: String): Boolean = (allCatch opt s.toDouble).isDefined
@@ -210,12 +196,17 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     //Lookup into shared string if required
     val stringValue = if (isSharedString) {
       val index = rawVal.toInt
-      lookupSharedString(Set(index)).head
+      lookupSharedString(Set(index), xlsxPath).head
     } else {
       rawVal
     }
 
-    val formatCode = sanitizeFormatCode(style)
+    val formatCode = if(style!=null) {
+      sanitizeFormatCode(style.formatCode)
+    } else {
+      null
+    }
+
     var cellType = CellType.Unknown
     val meta = scala.collection.mutable.Map[String, Any]()
 
@@ -307,8 +298,6 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
           meta += ("text" -> text.trim)
         }
 
-        //TODO bisogna applicare il formato se richiesto, vale in tutti i casi
-
         cellType = CellType.Currency
         toDouble(stringValue).getOrElse(0.0)
       } else {
@@ -358,24 +347,6 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     Cell(rowNum, colNum, value, cellType, metaMap)
   }
 
-  def sanitizeFormatCode(style: CellStyle): String = {
-    if (style == null) {
-      null
-    } else {
-
-      //Sanitize useless char
-      val temp = style.formatCode.replace("\\", "").trim
-
-      //Rimozione eventuale inutile suffisso
-      //#,##0.00;(#,##0.00) -> #,##0.00
-      if (temp.contains(";")) {
-        temp.substring(0, temp.indexOf(";"))
-      } else {
-        temp
-      }
-    }
-  }
-
   def isCharsSubset(formatCode: String, chars: String): Boolean = {
 
     if (formatCode == null || formatCode.trim.isEmpty) return false
@@ -409,4 +380,40 @@ object SheetHandler {
 
   case class Cell(rowNum: Int, colNum: Int, value: Any, cellType: CellType, meta: Map[String, Any] = null)
 
+  def lookupSharedString(ids: Set[Int], xlsxPath: String): List[String] = {
+
+    val factory: SAXParserFactory = SAXParserFactory.newInstance
+    val parser: SAXParser = factory.newSAXParser
+    val zis = extractStream(xlsxPath, shared_strings)
+    val handler = new SharedStringsHandler(ids)
+
+    if (zis.isDefined) {
+      parser.parse(zis.get, handler)
+    }
+    handler.getResult
+  }
+
+  def sanitizeFormatCode(formatCode: String): String = {
+    if (formatCode == null || formatCode.trim.isEmpty) {
+      null
+    } else {
+
+      //Sanitize useless char
+      val temp = formatCode
+        .replace("\\", "")
+        .replaceAll("-","")
+        .replaceAll("\\*","")
+        .replaceAll("_","")
+        .replaceAll("\\[(.*?)\\]","")
+        .trim
+
+      //Rimozione eventuale inutile suffisso
+      //#,##0.00;(#,##0.00) -> #,##0.00
+      if (temp.contains(";")) {
+        temp.substring(0, temp.indexOf(";"))
+      } else {
+        temp
+      }
+    }
+  }
 }
