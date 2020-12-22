@@ -45,7 +45,7 @@ class SheetHandlerTest extends AnyFlatSpec with Matchers {
     sanitizeFormatCode("") should be (null)
     sanitizeFormatCode("   ") should be (null)
     sanitizeFormatCode("_-* #,##0.00\\ \"€\"_-;\\-* #,##0.00\\ \"€\"_-;_-* \"-\"??\\ \"€\"_-;_-@_-") should be ("#,##0.00 \"€\"")
-    sanitizeFormatCode("[$-F400]h:mm:ss\\ AM/PM") should be ("h:mm:ss AM/PM")
+    sanitizeFormatCode("[$-F400]h:mm:ss\\ AM/PM") should be ("h:mm:ss")
     sanitizeFormatCode("[$-F800]dddd\\,\\ mmmm\\ dd\\,\\ yyyy") should be ("dddd, mmmm dd, yyyy")
   }
 }

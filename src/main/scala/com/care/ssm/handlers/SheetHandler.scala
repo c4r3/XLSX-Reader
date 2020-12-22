@@ -1,11 +1,14 @@
 package com.care.ssm.handlers
 
 import java.lang.Integer._
+import java.time.ZoneId._
+import java.time.{ZoneId, ZonedDateTime}
+import java.time.format.DateTimeFormatter
 
 import com.care.ssm.SSMUtils
 import com.care.ssm.SSMUtils.{calculateColumn, extractStream, rels, shared_strings, styles, toDouble, toInt}
 import com.care.ssm.handlers.SheetHandler.CellType.CellType
-import com.care.ssm.handlers.SheetHandler.{Cell, CellType, Row, lookupSharedString, sanitizeFormatCode}
+import com.care.ssm.handlers.SheetHandler.{Cell, CellType, Row, lookupSharedString, parseTime, parseTimeStringWithFormat, sanitizeFormatCode}
 import com.care.ssm.handlers.StyleHandler.CellStyle
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
 import org.xml.sax.Attributes
@@ -286,6 +289,20 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
         cellType = CellType.Double
         toDouble(stringValue).getOrElse(0.0)
+      } else if (isCharsSubset(formatCode, "ms:")) {
+
+        cellType = CellType.Time
+        parseTime(stringValue)
+      } else if (isCharsSubset(formatCode, "hm:")) {
+        //TODO time with no seconds
+
+        cellType = CellType.Time
+        parseTime(stringValue)
+      } else if (isCharsSubset(formatCode, "hsm:")) {
+        //TODO time with seconds
+
+        cellType = CellType.Time
+        parseTime(stringValue)
       } else if (isCharsSubset(formatCode, "\"0,.#$€ ")) {
 
         val first = formatCode.indexOf("\"")
@@ -373,7 +390,7 @@ object SheetHandler {
 
   object CellType extends Enumeration {
     type CellType = Value
-    val Integer, Double, Long, String, Date, Currency, Unknown = Value
+    val Integer, Double, Long, String, Currency, Time, Date, DateTime, Unknown = Value
   }
 
   case class Row(index: Int, cells: List[Cell])
@@ -393,6 +410,18 @@ object SheetHandler {
     handler.getResult
   }
 
+  def parseTime(timeStr: String): Long = {
+    (toDouble(timeStr).getOrElse(0.0) * 86_400_000).round
+  }
+
+  def parseTimeStringWithFormat(timeStr: String, format: String): Long = {
+
+    val formatter = DateTimeFormatter.ofPattern( format)
+    val date: ZonedDateTime = ZonedDateTime.parse(timeStr, formatter).withZoneSameInstant(systemDefault())
+
+    date.toInstant.toEpochMilli
+  }
+
   def sanitizeFormatCode(formatCode: String): String = {
     if (formatCode == null || formatCode.trim.isEmpty) {
       null
@@ -405,6 +434,7 @@ object SheetHandler {
         .replaceAll("\\*","")
         .replaceAll("_","")
         .replaceAll("\\[(.*?)\\]","")
+        .replace("AM/PM","") //Cleaning useless data with time
         .trim
 
       //Rimozione eventuale inutile suffisso

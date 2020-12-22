@@ -61,6 +61,7 @@ object SSMUtils {
     }
   }
 
+  //FIXME portalo a Either Try(s.toDouble).toEither(...)
   def toDouble(s: String): Option[Double] = {
     try {
       Some(s.toDouble)
