@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter
 import com.care.ssm.SSMUtils
 import com.care.ssm.SSMUtils.{calculateColumn, extractStream, rels, shared_strings, styles, toDouble, toInt}
 import com.care.ssm.handlers.SheetHandler.CellType.CellType
-import com.care.ssm.handlers.SheetHandler.{Cell, CellType, Row, lookupSharedString, parseTime, parseTimeStringWithFormat, sanitizeFormatCode}
+import com.care.ssm.handlers.SheetHandler.{Cell, CellType, Row, lookupSharedString, parseDateStringWithFormat, parseTime, sanitizeFormatCode}
 import com.care.ssm.handlers.StyleHandler.CellStyle
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
 import org.xml.sax.Attributes
@@ -293,16 +293,22 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
         cellType = CellType.Time
         parseTime(stringValue)
+      } else if (isCharsSubset(formatCode, "sm.0")) {
+
+        cellType = CellType.Time
+        parseTime(stringValue)
       } else if (isCharsSubset(formatCode, "hm:")) {
-        //TODO time with no seconds
 
         cellType = CellType.Time
         parseTime(stringValue)
       } else if (isCharsSubset(formatCode, "hsm:")) {
-        //TODO time with seconds
 
         cellType = CellType.Time
         parseTime(stringValue)
+      } else if (isCharsSubset(formatCode, "mdy-, ")) {
+
+        cellType = CellType.Date
+        parseDateStringWithFormat(stringValue)
       } else if (isCharsSubset(formatCode, "\"0,.#$€ ")) {
 
         val first = formatCode.indexOf("\"")
@@ -335,16 +341,17 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
           case "mm-dd-yy" => None //FIXME completare
           case "d-mmm-yy" => None //FIXME completare
+          case "mm-dd-yy" => None //FIXME completare
           case "d-mmm" => None //FIXME completare
           case "mmm-yy" => None //FIXME completare
-          case "h:mm AM/PM" => None //FIXME completare
-          case "h:mm:ss AM/PM" => None //FIXME completare
-          case "h:mm" => None //FIXME completare
-          case "h:mm:ss" => None //FIXME completare
+          //case "h:mm AM/PM" => None //FIXME completare
+          //case "h:mm:ss AM/PM" => None //FIXME completare
+          //case "h:mm" => None //FIXME completare
+          //case "h:mm:ss" => None //FIXME completare
           case "m/d/yy h:mm" => None //FIXME completare
-          case "mm:ss" => None //FIXME completare
-          case "[h]:mm:ss" => None //FIXME completare
-          case "mmss.0" => None //FIXME completare
+          //case "mm:ss" => None //FIXME completare
+          //case "[h]:mm:ss" => None //FIXME completare
+          //case "mmss.0" => None //FIXME completare
           case "##0.0E+0" =>
             cellType = CellType.Double
             toDouble(stringValue).getOrElse(0.0)
@@ -388,9 +395,12 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
 object SheetHandler {
 
+  final val MILLIS_IN_DAY = 86_400_000L
+  final val DAYS_FROM_0_1_1900 = 25_569.0
+
   object CellType extends Enumeration {
     type CellType = Value
-    val Integer, Double, Long, String, Currency, Time, Date, DateTime, Unknown = Value
+    val Integer, Double, Long, String, Currency, Time, Date, Unknown = Value
   }
 
   case class Row(index: Int, cells: List[Cell])
@@ -411,15 +421,26 @@ object SheetHandler {
   }
 
   def parseTime(timeStr: String): Long = {
-    (toDouble(timeStr).getOrElse(0.0) * 86_400_000).round
+    (toDouble(timeStr).getOrElse(0.0) * 86_400_000L).round
   }
 
-  def parseTimeStringWithFormat(timeStr: String, format: String): Long = {
+  def parseDateStringWithFormat(timeStr: String): Long = {
+    //TODO questo metodo va bene per tutte le date nello stesso formato
+    //FIXME se c'è il punto probabilmente è un datetime
 
-    val formatter = DateTimeFormatter.ofPattern( format)
-    val date: ZonedDateTime = ZonedDateTime.parse(timeStr, formatter).withZoneSameInstant(systemDefault())
-
-    date.toInstant.toEpochMilli
+    //val dotIndex = timeStr.indexOf(".")
+    //val result:Long = if(dotIndex>0) { //days and percentage of day
+      //TODO non serve spezzare tutto
+      //val daysSinceEpoch = toDouble(timeStr.substring(0, dotIndex)).getOrElse(0.0)
+      //val percentageOfDay = toDouble(timeStr.substring(dotIndex + 1)).getOrElse(0.0)
+      //((daysSinceEpoch + percentageOfDay - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
+    //} else {
+      //only days since epoch
+      //val daysSinceEpoch =
+      val result: Long = ((toDouble(timeStr).getOrElse(0.0) - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
+      //daysSinceEpoch * MILLIS_IN_DAY
+    //}
+    result
   }
 
   def sanitizeFormatCode(formatCode: String): String = {
