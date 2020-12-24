@@ -289,6 +289,10 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
         cellType = CellType.Double
         toDouble(stringValue).getOrElse(0.0)
+      } else if (formatCode == "0.00E+00") {
+
+        cellType = CellType.Double
+        toDouble(stringValue).getOrElse(0.0)
       } else if (isCharsSubset(formatCode, "ms:")) {
 
         cellType = CellType.Time
@@ -305,7 +309,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
         cellType = CellType.Time
         parseTime(stringValue)
-      } else if (isCharsSubset(formatCode, "mdy-, ")) {
+      } else if (isCharsSubset(formatCode, "mdy-, /h")) {
 
         cellType = CellType.Date
         parseDateStringWithFormat(stringValue)
@@ -327,31 +331,19 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
         formatCode match {
 
-          case "0.00E+00" =>
-            cellType = CellType.Double
-            toDouble(stringValue).getOrElse(0.0)
+          case "#?/?" | "#??/??" =>
 
-          case "#?/?" =>
-            cellType = CellType.Double
-            toDouble(stringValue).getOrElse(0.0)
+            val d = toDouble(stringValue)
 
-          case "#??/??" =>
-            cellType = CellType.Double
-            toDouble(stringValue).getOrElse(0.0)
-
-          case "mm-dd-yy" => None //FIXME completare
-          case "d-mmm-yy" => None //FIXME completare
-          case "mm-dd-yy" => None //FIXME completare
-          case "d-mmm" => None //FIXME completare
-          case "mmm-yy" => None //FIXME completare
-          //case "h:mm AM/PM" => None //FIXME completare
-          //case "h:mm:ss AM/PM" => None //FIXME completare
-          //case "h:mm" => None //FIXME completare
-          //case "h:mm:ss" => None //FIXME completare
-          case "m/d/yy h:mm" => None //FIXME completare
-          //case "mm:ss" => None //FIXME completare
-          //case "[h]:mm:ss" => None //FIXME completare
-          //case "mmss.0" => None //FIXME completare
+            //TODO se non è parsabile come double lo si declassa a stringa
+            val res = if(d.isDefined) {
+              cellType = CellType.Double
+              d
+            } else {
+              cellType = CellType.String
+              stringValue
+            }
+            res
           case "##0.0E+0" =>
             cellType = CellType.Double
             toDouble(stringValue).getOrElse(0.0)
@@ -424,23 +416,9 @@ object SheetHandler {
     (toDouble(timeStr).getOrElse(0.0) * 86_400_000L).round
   }
 
+  //TODO gestire gli errori di parsing
   def parseDateStringWithFormat(timeStr: String): Long = {
-    //TODO questo metodo va bene per tutte le date nello stesso formato
-    //FIXME se c'è il punto probabilmente è un datetime
-
-    //val dotIndex = timeStr.indexOf(".")
-    //val result:Long = if(dotIndex>0) { //days and percentage of day
-      //TODO non serve spezzare tutto
-      //val daysSinceEpoch = toDouble(timeStr.substring(0, dotIndex)).getOrElse(0.0)
-      //val percentageOfDay = toDouble(timeStr.substring(dotIndex + 1)).getOrElse(0.0)
-      //((daysSinceEpoch + percentageOfDay - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
-    //} else {
-      //only days since epoch
-      //val daysSinceEpoch =
-      val result: Long = ((toDouble(timeStr).getOrElse(0.0) - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
-      //daysSinceEpoch * MILLIS_IN_DAY
-    //}
-    result
+    ((toDouble(timeStr).getOrElse(0.0) - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
   }
 
   def sanitizeFormatCode(formatCode: String): String = {

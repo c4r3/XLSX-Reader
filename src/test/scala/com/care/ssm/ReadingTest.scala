@@ -141,8 +141,6 @@ class ReadingTest extends AnyFlatSpec with Matchers {
     first.cells(7) should be(Cell(2, 8, 0.17, CellType.Double, null))
     first.cells(8) should be(Cell(2, 9, 1593907200000L, CellType.Date, null))
     first.cells(9) should be(Cell(2, 10, 1.0E8, CellType.Double, null))
-
-    //TODO riprendi da qui
-    first.cells(10) should be(Cell(2, 11, "text", CellType.String, null))
+    first.cells(10) should be(Cell(2, 11, "abc", CellType.String, null))
   }
 }
