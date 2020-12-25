@@ -1,14 +1,11 @@
 package com.care.ssm.handlers
 
 import java.lang.Integer._
-import java.time.ZoneId._
-import java.time.{ZoneId, ZonedDateTime}
-import java.time.format.DateTimeFormatter
 
 import com.care.ssm.SSMUtils
-import com.care.ssm.SSMUtils.{calculateColumn, extractStream, rels, shared_strings, styles, toDouble, toInt}
+import com.care.ssm.SSMUtils._
 import com.care.ssm.handlers.SheetHandler.CellType.CellType
-import com.care.ssm.handlers.SheetHandler.{Cell, CellType, Row, lookupSharedString, parseDateStringWithFormat, parseTime, sanitizeFormatCode}
+import com.care.ssm.handlers.SheetHandler._
 import com.care.ssm.handlers.StyleHandler.CellStyle
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
 import org.xml.sax.Attributes
@@ -215,7 +212,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
     val value = {
 
-      if (formatCode == null && isSharedString) {
+      if ((formatCode == null && isSharedString) || formatCode == "General" || formatCode == "@") {
 
         val w = if(isInt(stringValue)) {
 
@@ -243,41 +240,11 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
           stringValue
         }
         v
-      } else if (formatCode == "General") {
-
-        val w = if(isInt(stringValue)) {
-
-          cellType = CellType.Integer
-          toInt(stringValue).getOrElse(0)
-        } else if(isDouble(stringValue)) {
-
-          cellType = CellType.Double
-          toDouble(stringValue).getOrElse(0.0)
-        } else {
-          cellType = CellType.String
-          stringValue
-        }
-        w
-      } else if (formatCode == "@") {
-
-        val w = if(isInt(stringValue)) {
-
-          cellType = CellType.Integer
-          toInt(stringValue).getOrElse(0)
-        } else if(isDouble(stringValue)) {
-
-          cellType = CellType.Double
-          toDouble(stringValue).getOrElse(0.0)
-        } else {
-          cellType = CellType.String
-          stringValue
-        }
-        w
       } else if (formatCode == "0") {
 
         cellType = CellType.Integer
         toInt(stringValue).getOrElse(0)
-      } else if (isCharsSubset(formatCode, "0.")) {
+      } else if (isCharsSubset(formatCode, "0.,#")) {
 
         cellType = CellType.Double
         toDouble(stringValue).getOrElse(0.0)
@@ -285,27 +252,11 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
         cellType = CellType.Double
         toDouble(stringValue.replace("%", "")).getOrElse(0.0)
-      } else if (isCharsSubset(formatCode, "0,.#")) {
-
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
       } else if (formatCode == "0.00E+00") {
 
         cellType = CellType.Double
         toDouble(stringValue).getOrElse(0.0)
-      } else if (isCharsSubset(formatCode, "ms:")) {
-
-        cellType = CellType.Time
-        parseTime(stringValue)
-      } else if (isCharsSubset(formatCode, "sm.0")) {
-
-        cellType = CellType.Time
-        parseTime(stringValue)
-      } else if (isCharsSubset(formatCode, "hm:")) {
-
-        cellType = CellType.Time
-        parseTime(stringValue)
-      } else if (isCharsSubset(formatCode, "hsm:")) {
+      } else if (isCharsSubset(formatCode, "ms:h.0")) {
 
         cellType = CellType.Time
         parseTime(stringValue)
