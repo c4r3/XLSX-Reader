@@ -5,6 +5,7 @@ import java.lang.Math.pow
 import java.lang.String.valueOf
 import java.util.zip.ZipInputStream
 
+
 /**
   * @author Massimo Caresana
   */
@@ -50,36 +51,31 @@ object SSMUtils {
     ).sum
   }
 
-  def toInt(s: String): Option[Int] = {
+  def toInt(s: String): Either[String, Int] = {
     try {
-      Some(s.toInt)
+      Right(s.toInt)
     } catch {
-      case ex : Exception =>
-        ex.printStackTrace()
-        println(s"Error toInt parsing $s")
-        None
+      case _ : Exception =>
+        Left(s"Unparseable string to Integer with value: $s")
     }
   }
 
-  //FIXME portalo a Either Try(s.toDouble).toEither(...)
-  def toDouble(s: String): Option[Double] = {
+  def toDouble(s: String): Either[String, Double] = {
     try {
-      Some(s.toDouble)
+      Right(s.toDouble)
     } catch {
-      case ex : Exception =>
-        println(s"Error toDouble parsing $s")
-        None
+      case _ : Exception =>
+        Left(s"Unparseable string to Double with value: $s")
     }
   }
 
-  def toLong(s: String): Option[Long] = {
+  def toLong(s: String): Either[String, Long] = {
+
     try {
-      Some(s.toLong)
+      Right(s.toLong)
     } catch {
-      case ex : Exception =>
-        ex.printStackTrace()
-        println(s"Error toLong parsing $s")
-        None
+      case _: Throwable =>
+        Left(s"Unparseable string to Long with value: $s")
     }
   }
 }

@@ -61,7 +61,7 @@ class StyleHandler extends DefaultHandler{
       val isFormatNumberApply = isApplyNumberFormatRequired(attributes.getValue(applyNumberFormatTag))
 
       toInt(attributes.getValue(numFmtIdTag)) match {
-        case Some(num) =>
+        case Right(num) =>
 
           //Se il numFmtId è presente nella numFormatList allora prendo quel valore, altrimenti significa che è uno
           // stile standard (definito a priori)
@@ -72,7 +72,7 @@ class StyleHandler extends DefaultHandler{
               val currentNumFormat = lookupFormatCode(num)
               result += CellStyle(num, currentNumFormat, isFormatNumberApply)
           }
-        case None => result += null
+        case Left(_) => result += null
       }
 
       index += 1
@@ -84,8 +84,8 @@ class StyleHandler extends DefaultHandler{
     if(applyString==null || applyString.trim.isEmpty) return false
 
     toInt(applyString) match {
-      case Some(applyVal) => applyVal==1
-      case None => false
+      case Right(applyVal) => applyVal==1
+      case Left(_) => false
     }
   }
 

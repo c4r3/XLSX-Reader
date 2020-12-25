@@ -311,16 +311,19 @@ object SheetHandler {
   def parseDateStringWithFormat(timeStr: String): Long = {
 
     toDouble(timeStr) match {
-      case Some(d) => ((d - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
-      case None => 0L
+      case Right(d) => ((d - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
+      case Left(s) =>
+        println(s)
+        0L
     }
   }
 
-  //TODO aggiungere logging per gestire le similitudini dei casi sotto
   def parseDouble(rowNum: Int, colNum: Int, strValue: String): Cell = {
     toDouble(strValue) match {
-      case Some(d) => Cell(rowNum, colNum, d, CellType.Double)
-      case None => Cell(rowNum, colNum, strValue, CellType.String)
+      case Right(d) => Cell(rowNum, colNum, d, CellType.Double)
+      case Left(s) =>
+        print(s)
+        Cell(rowNum, colNum, strValue, CellType.String)
     }
   }
 
@@ -369,7 +372,7 @@ object SheetHandler {
         .replace("AM/PM", "") //Cleaning useless data with time
         .trim
 
-      //Rimozione eventuale inutile suffisso
+      //Deleting useless stuff
       //#,##0.00;(#,##0.00) -> #,##0.00
       if (temp.contains(";")) {
         temp.substring(0, temp.indexOf(";"))
