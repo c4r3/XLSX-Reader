@@ -201,56 +201,46 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
       rawVal
     }
 
-    val formatCode = if(style!=null) {
+    val formatCode = if (style != null) {
       sanitizeFormatCode(style.formatCode)
     } else {
       null
     }
 
-    val value: Cell = {
+    if (formatCode == null || formatCode == "General" || formatCode == "@" || formatCode == "0") {
 
-      if (formatCode == null || formatCode == "General" || formatCode == "@") {
-
-        if(isInt(stringValue)) {
-
-          Cell(rowNum, colNum, toInt(stringValue).getOrElse(0), CellType.Integer)
-        } else if(isDouble(stringValue)) {
-
-          Cell(rowNum, colNum, toDouble(stringValue).getOrElse(0.0), CellType.Double)
-        } else {
-
-          Cell(rowNum, colNum, stringValue, CellType.String)
-        }
-      } else if (formatCode == "0") {
+      if (isInt(stringValue)) {
 
         Cell(rowNum, colNum, toInt(stringValue).getOrElse(0), CellType.Integer)
-      } else if (isCharsSubset(formatCode, "0.,#")) {
-
-        Cell(rowNum, colNum, toDouble(stringValue).getOrElse(0.0), CellType.Double)
-      } else if (formatCode == "#?/?" | formatCode == "#??/??") {
+      } else if (isDouble(stringValue)) {
 
         parseDouble(rowNum, colNum, stringValue)
-      } else if (isCharsSubset(formatCode, "0.%")) {
-
-        Cell(rowNum, colNum, toDouble(stringValue.replace("%", "")).getOrElse(0.0), CellType.Double)
-      } else if (formatCode == "0.00E+00" || formatCode == "##0.0E+0") {
-
-        Cell(rowNum, colNum, toDouble(stringValue).getOrElse(0.0), CellType.Double)
-      } else if (isCharsSubset(formatCode, "ms:h.0")) {
-
-        Cell(rowNum, colNum, parseTime(stringValue), CellType.Time)
-      } else if (isCharsSubset(formatCode, "mdy-, /h")) {
-
-        Cell(rowNum, colNum, parseDateStringWithFormat(stringValue), CellType.Date)
-      } else if (isCharsSubset(formatCode, "\"0,.#$€ ")) {
-
-        parseCurrency(rowNum, colNum, stringValue, formatCode)
       } else {
-        println(s"Unknown style $style")
-        Cell(rowNum, colNum, null, CellType.Unknown)
+
+        Cell(rowNum, colNum, stringValue, CellType.String)
       }
+    } else if (isCharsSubset(formatCode, "0.,#") || formatCode == "#?/?" || formatCode == "#??/??") {
+
+      parseDouble(rowNum, colNum, stringValue)
+    } else if (isCharsSubset(formatCode, "0.%")) {
+
+      parseDouble(rowNum, colNum, stringValue.replace("%", ""))
+    } else if (formatCode == "0.00E+00" || formatCode == "##0.0E+0") {
+
+      parseDouble(rowNum, colNum, stringValue)
+    } else if (isCharsSubset(formatCode, "ms:h.0")) {
+
+      Cell(rowNum, colNum, parseTime(stringValue), CellType.Time)
+    } else if (isCharsSubset(formatCode, "mdy-, /h")) {
+
+      Cell(rowNum, colNum, parseDateStringWithFormat(stringValue), CellType.Date)
+    } else if (isCharsSubset(formatCode, "\"0,.#$€ ")) {
+
+      parseCurrency(rowNum, colNum, stringValue, formatCode)
+    } else {
+      println(s"Unknown style $style")
+      Cell(rowNum, colNum, null, CellType.Unknown)
     }
-    value
   }
 
   def isCharsSubset(formatCode: String, chars: String): Boolean = {
@@ -258,7 +248,6 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     if (formatCode == null || formatCode.trim.isEmpty) return false
 
     val charsArray = chars.toCharArray
-
     for (c <- formatCode) {
 
       if (!charsArray.contains(c)) {
@@ -288,11 +277,11 @@ object SheetHandler {
   case class Row(index: Int, cells: List[Cell]) {
 
     def toCSV: String = {
-     if(cells!=null && cells.nonEmpty) {
-       cells.map(_.toCSV).mkString(";")
-     } else {
-       ""
-     }
+      if (cells != null && cells.nonEmpty) {
+        cells.map(_.toCSV).mkString(";")
+      } else {
+        ""
+      }
     }
   }
 
@@ -300,13 +289,13 @@ object SheetHandler {
 
     def toCSV: String = {
 
-      val metaValues = if(meta!=null && meta.nonEmpty) {
+      val metaValues = if (meta != null && meta.nonEmpty) {
         meta.map(pair => s"${pair._1}=${pair._2}").mkString("|")
       } else {
         ""
       }
 
-     s""""${rowNum.toString}","$colNum","$value","$cellType","$metaValues""""
+      s""""${rowNum.toString}","$colNum","$value","$cellType","$metaValues""""
     }
   }
 
@@ -363,11 +352,11 @@ object SheetHandler {
       //Sanitize useless char
       val temp = formatCode
         .replace("\\", "")
-        .replaceAll("-","")
-        .replaceAll("\\*","")
-        .replaceAll("_","")
-        .replaceAll("\\[(.*?)\\]","")
-        .replace("AM/PM","") //Cleaning useless data with time
+        .replaceAll("-", "")
+        .replaceAll("\\*", "")
+        .replaceAll("_", "")
+        .replaceAll("\\[(.*?)\\]", "")
+        .replace("AM/PM", "") //Cleaning useless data with time
         .trim
 
       //Rimozione eventuale inutile suffisso
