@@ -24,7 +24,8 @@ import scala.util.control.Exception.allCatch
   * @param toRow      End reading to this zero-based index
   * @param stylesList The style data
   */
-class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[CellStyle], xlsxPath: String) extends DefaultHandler {
+class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[CellStyle], xlsxPath: String)
+  extends DefaultHandler {
 
   var result: ListBuffer[Row] = ListBuffer[Row]()
 
@@ -141,7 +142,6 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
           null
         }
 
-      //TODO aggiungere cellXY se serve
       val colNum = calculateColumn(cellXY, rowNum)
       val stringValue = new String(ch, start, length)
       rowCellsBuffer += evaluate(rowNum, colNum, cellType, stringValue, style)
@@ -260,9 +260,14 @@ object SheetHandler {
     val Integer, Double, Long, String, Currency, Time, Date, Unknown = Value
   }
 
-  case class Row(index: Int, cells: List[Cell]) {
+  sealed trait CSVUtilities {
 
-    def toCSV: String = {
+    def toCSV: String
+  }
+
+  case class Row(index: Int, cells: List[Cell]) extends CSVUtilities {
+
+    override def toCSV: String = {
       if (cells != null && cells.nonEmpty) {
         cells.map(_.toCSV).mkString(";")
       } else {
@@ -271,9 +276,10 @@ object SheetHandler {
     }
   }
 
-  case class Cell(rowNum: Int, colNum: Int, value: Any, cellType: CellType, meta: Map[String, Any] = null) {
+  case class Cell(rowNum: Int, colNum: Int, value: Any, cellType: CellType, meta: Map[String, Any] = null)
+    extends CSVUtilities {
 
-    def toCSV: String = {
+    override def toCSV: String = {
 
       val metaValues = if (meta != null && meta.nonEmpty) {
         meta.map(pair => s"${pair._1}=${pair._2}").mkString("|")
@@ -302,9 +308,12 @@ object SheetHandler {
     (toDouble(timeStr).getOrElse(0.0) * 86_400_000L).round
   }
 
-  //TODO gestire gli errori di parsing
   def parseDateStringWithFormat(timeStr: String): Long = {
-    ((toDouble(timeStr).getOrElse(0.0) - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
+
+    toDouble(timeStr) match {
+      case Some(d) => ((d - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
+      case None => 0L
+    }
   }
 
   //TODO aggiungere logging per gestire le similitudini dei casi sotto
