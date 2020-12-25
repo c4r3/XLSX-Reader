@@ -67,7 +67,6 @@ object SSMUtils {
       Some(s.toDouble)
     } catch {
       case ex : Exception =>
-        ex.printStackTrace()
         println(s"Error toDouble parsing $s")
         None
     }

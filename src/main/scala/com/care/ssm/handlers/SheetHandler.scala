@@ -187,10 +187,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
       case _ => null
     }
 
-  def isInt(s: String): Boolean = (allCatch opt s.toInt).isDefined
-
-  def isDouble(s: String): Boolean = (allCatch opt s.toDouble).isDefined
-
+  //TODO mancano i boolean
   def applyStyle(rowNum: Int, colNum: Int, rawVal: String, style: CellStyle, isSharedString: Boolean): Cell = {
 
     //Lookup into shared string if required
@@ -209,25 +206,14 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
     if (formatCode == null || formatCode == "General" || formatCode == "@" || formatCode == "0") {
 
-      if (isInt(stringValue)) {
-
-        Cell(rowNum, colNum, toInt(stringValue).getOrElse(0), CellType.Integer)
-      } else if (isDouble(stringValue)) {
-
-        parseDouble(rowNum, colNum, stringValue)
-      } else {
-
-        Cell(rowNum, colNum, stringValue, CellType.String)
-      }
-    } else if (isCharsSubset(formatCode, "0.,#") || formatCode == "#?/?" || formatCode == "#??/??") {
+      parseInteger(rowNum, colNum, stringValue)
+    } else if (isCharsSubset(formatCode, "0.,#") || formatCode == "#?/?" || formatCode == "#??/??" ||
+      formatCode == "0.00E+00" || formatCode == "##0.0E+0") {
 
       parseDouble(rowNum, colNum, stringValue)
     } else if (isCharsSubset(formatCode, "0.%")) {
 
       parseDouble(rowNum, colNum, stringValue.replace("%", ""))
-    } else if (formatCode == "0.00E+00" || formatCode == "##0.0E+0") {
-
-      parseDouble(rowNum, colNum, stringValue)
     } else if (isCharsSubset(formatCode, "ms:h.0")) {
 
       Cell(rowNum, colNum, parseTime(stringValue), CellType.Time)
@@ -321,10 +307,25 @@ object SheetHandler {
     ((toDouble(timeStr).getOrElse(0.0) - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
   }
 
+  //TODO aggiungere logging per gestire le similitudini dei casi sotto
   def parseDouble(rowNum: Int, colNum: Int, strValue: String): Cell = {
     toDouble(strValue) match {
       case Some(d) => Cell(rowNum, colNum, d, CellType.Double)
       case None => Cell(rowNum, colNum, strValue, CellType.String)
+    }
+  }
+
+  def parseInteger(rowNum: Int, colNum: Int, strValue: String): Cell = {
+
+    if (isInt(strValue)) {
+
+      Cell(rowNum, colNum, toInt(strValue).getOrElse(0), CellType.Integer)
+    } else if (isDouble(strValue)) {
+
+      parseDouble(rowNum, colNum, strValue)
+    } else {
+
+      Cell(rowNum, colNum, strValue, CellType.String)
     }
   }
 
@@ -368,4 +369,8 @@ object SheetHandler {
       }
     }
   }
+
+  def isInt(s: String): Boolean = (allCatch opt s.toInt).isDefined
+
+  def isDouble(s: String): Boolean = (allCatch opt s.toDouble).isDefined
 }
