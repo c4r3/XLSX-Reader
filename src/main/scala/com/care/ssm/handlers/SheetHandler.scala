@@ -207,111 +207,53 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
       null
     }
 
-    var cellType = CellType.Unknown
-    val meta = scala.collection.mutable.Map[String, Any]()
+    val value: Cell = {
 
-    val value = {
+      if (formatCode == null || formatCode == "General" || formatCode == "@") {
 
-      if ((formatCode == null && isSharedString) || formatCode == "General" || formatCode == "@") {
+        if(isInt(stringValue)) {
 
-        val w = if(isInt(stringValue)) {
-
-          cellType = CellType.Integer
-          toInt(stringValue).getOrElse(0)
+          Cell(rowNum, colNum, toInt(stringValue).getOrElse(0), CellType.Integer)
         } else if(isDouble(stringValue)) {
 
-          cellType = CellType.Double
-          toDouble(stringValue).getOrElse(0.0)
+          Cell(rowNum, colNum, toDouble(stringValue).getOrElse(0.0), CellType.Double)
         } else {
-          cellType = CellType.String
-          stringValue
-        }
-        w
-      } else if (formatCode == null && !isSharedString) {
 
-        val v: Any = if (stringValue.contains(".")) {
-          cellType = CellType.Double
-          toDouble(stringValue).getOrElse(0.0)
-        } else if(isInt(stringValue)) {
-          cellType = CellType.Integer
-          toInt(stringValue).getOrElse(0)
-        }   else {
-          cellType = CellType.String
-          stringValue
+          Cell(rowNum, colNum, stringValue, CellType.String)
         }
-        v
       } else if (formatCode == "0") {
 
-        cellType = CellType.Integer
-        toInt(stringValue).getOrElse(0)
+        Cell(rowNum, colNum, toInt(stringValue).getOrElse(0), CellType.Integer)
       } else if (isCharsSubset(formatCode, "0.,#")) {
 
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
+        Cell(rowNum, colNum, toDouble(stringValue).getOrElse(0.0), CellType.Double)
+      } else if (formatCode == "#?/?" | formatCode == "#??/??") {
+
+        toDouble(stringValue) match {
+          case Some(d) => Cell(rowNum, colNum, d, CellType.Double)
+          case None => Cell(rowNum, colNum, stringValue, CellType.String)
+        }
       } else if (isCharsSubset(formatCode, "0.%")) {
 
-        cellType = CellType.Double
-        toDouble(stringValue.replace("%", "")).getOrElse(0.0)
-      } else if (formatCode == "0.00E+00") {
+        Cell(rowNum, colNum, toDouble(stringValue.replace("%", "")).getOrElse(0.0), CellType.Double)
+      } else if (formatCode == "0.00E+00" || formatCode == "##0.0E+0") {
 
-        cellType = CellType.Double
-        toDouble(stringValue).getOrElse(0.0)
+        Cell(rowNum, colNum, toDouble(stringValue).getOrElse(0.0), CellType.Double)
       } else if (isCharsSubset(formatCode, "ms:h.0")) {
 
-        cellType = CellType.Time
-        parseTime(stringValue)
+        Cell(rowNum, colNum, parseTime(stringValue), CellType.Time)
       } else if (isCharsSubset(formatCode, "mdy-, /h")) {
 
-        cellType = CellType.Date
-        parseDateStringWithFormat(stringValue)
+        Cell(rowNum, colNum, parseDateStringWithFormat(stringValue), CellType.Date)
       } else if (isCharsSubset(formatCode, "\"0,.#$€ ")) {
 
-        val first = formatCode.indexOf("\"")
-        val last = formatCode.lastIndexOf("\"")
-        val text = formatCode.substring(first + 1, last)
-
-        if (text.trim.length == 1) {
-          meta += ("sign" -> text.trim)
-        } else {
-          meta += ("text" -> text.trim)
-        }
-
-        cellType = CellType.Currency
-        toDouble(stringValue).getOrElse(0.0)
+        parseCurrency(rowNum, colNum, stringValue, formatCode)
       } else {
-
-        formatCode match {
-
-          case "#?/?" | "#??/??" =>
-
-            val d = toDouble(stringValue)
-
-            //TODO se non è parsabile come double lo si declassa a stringa
-            val res = if(d.isDefined) {
-              cellType = CellType.Double
-              d
-            } else {
-              cellType = CellType.String
-              stringValue
-            }
-            res
-          case "##0.0E+0" =>
-            cellType = CellType.Double
-            toDouble(stringValue).getOrElse(0.0)
-          case _ =>
-            println(s"Unknown style $style")
-            null
-        }
+        println(s"Unknown style $style")
+        Cell(rowNum, colNum, null, CellType.Unknown)
       }
     }
-
-    val metaMap = if (meta != null && meta.isEmpty) {
-      null
-    } else {
-      meta.toMap
-    }
-
-    Cell(rowNum, colNum, value, cellType, metaMap)
+    value
   }
 
   def isCharsSubset(formatCode: String, chars: String): Boolean = {
@@ -391,6 +333,22 @@ object SheetHandler {
   //TODO gestire gli errori di parsing
   def parseDateStringWithFormat(timeStr: String): Long = {
     ((toDouble(timeStr).getOrElse(0.0) - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
+  }
+
+  def parseCurrency(rowNum: Int, colNum: Int, currencyStr: String, formatCode: String): Cell = {
+
+    val first = formatCode.indexOf("\"")
+    val last = formatCode.lastIndexOf("\"")
+    val text = formatCode.substring(first + 1, last)
+
+    val meta = scala.collection.mutable.Map[String, Any]()
+    if (text.trim.length == 1) {
+      meta += ("sign" -> text.trim)
+    } else {
+      meta += ("text" -> text.trim)
+    }
+
+    Cell(rowNum, colNum, toDouble(currencyStr).getOrElse(0.0), CellType.Currency, meta.toMap)
   }
 
   def sanitizeFormatCode(formatCode: String): String = {
