@@ -4,6 +4,8 @@ import com.care.ssm.handlers.SheetHandler.{Cell, CellType, Row}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import scala.io.Source
+
 class ReadingTest extends AnyFlatSpec with Matchers {
 
   "Reading sample_1" should "be ok" in {
@@ -142,5 +144,12 @@ class ReadingTest extends AnyFlatSpec with Matchers {
     first.cells(8) should be(Cell(2, 9, 1593907200000L, CellType.Date, null))
     first.cells(9) should be(Cell(2, 10, 1.0E8, CellType.Double, null))
     first.cells(10) should be(Cell(2, 11, "abc", CellType.String, null))
+
+    val expected = Source.fromFile("./src/test/resources/sample_2/sample_2_expected.txt")
+    val lines = expected.getLines.toList
+
+    result.map(_.toCSV) should contain theSameElementsInOrderAs lines
+
+    expected.close()
   }
 }

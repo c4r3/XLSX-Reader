@@ -395,9 +395,30 @@ object SheetHandler {
     val Integer, Double, Long, String, Currency, Time, Date, Unknown = Value
   }
 
-  case class Row(index: Int, cells: List[Cell])
+  case class Row(index: Int, cells: List[Cell]) {
 
-  case class Cell(rowNum: Int, colNum: Int, value: Any, cellType: CellType, meta: Map[String, Any] = null)
+    def toCSV: String = {
+     if(cells!=null && cells.nonEmpty) {
+       cells.map(_.toCSV).mkString(";")
+     } else {
+       ""
+     }
+    }
+  }
+
+  case class Cell(rowNum: Int, colNum: Int, value: Any, cellType: CellType, meta: Map[String, Any] = null) {
+
+    def toCSV: String = {
+
+      val metaValues = if(meta!=null && meta.nonEmpty) {
+        meta.map(pair => s"${pair._1}=${pair._2}").mkString("|")
+      } else {
+        ""
+      }
+
+     s""""${rowNum.toString}","$colNum","$value","$cellType","$metaValues""""
+    }
+  }
 
   def lookupSharedString(ids: Set[Int], xlsxPath: String): List[String] = {
 
