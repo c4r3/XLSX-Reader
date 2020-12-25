@@ -229,10 +229,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
         Cell(rowNum, colNum, toDouble(stringValue).getOrElse(0.0), CellType.Double)
       } else if (formatCode == "#?/?" | formatCode == "#??/??") {
 
-        toDouble(stringValue) match {
-          case Some(d) => Cell(rowNum, colNum, d, CellType.Double)
-          case None => Cell(rowNum, colNum, stringValue, CellType.String)
-        }
+        parseDouble(rowNum, colNum, stringValue)
       } else if (isCharsSubset(formatCode, "0.%")) {
 
         Cell(rowNum, colNum, toDouble(stringValue.replace("%", "")).getOrElse(0.0), CellType.Double)
@@ -333,6 +330,13 @@ object SheetHandler {
   //TODO gestire gli errori di parsing
   def parseDateStringWithFormat(timeStr: String): Long = {
     ((toDouble(timeStr).getOrElse(0.0) - DAYS_FROM_0_1_1900) * MILLIS_IN_DAY).round
+  }
+
+  def parseDouble(rowNum: Int, colNum: Int, strValue: String): Cell = {
+    toDouble(strValue) match {
+      case Some(d) => Cell(rowNum, colNum, d, CellType.Double)
+      case None => Cell(rowNum, colNum, strValue, CellType.String)
+    }
   }
 
   def parseCurrency(rowNum: Int, colNum: Int, currencyStr: String, formatCode: String): Cell = {
