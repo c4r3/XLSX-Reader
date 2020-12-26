@@ -2,7 +2,6 @@ package com.care.ssm.handlers
 
 import java.lang.Integer._
 
-import com.care.ssm.SSMUtils
 import com.care.ssm.SSMUtils._
 import com.care.ssm.handlers.SheetHandler.CellType.CellType
 import com.care.ssm.handlers.SheetHandler._
@@ -54,7 +53,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
   var rowNum: Int = -1
   var cellXY = ""
   var cellStyleIndex: Int = -1
-  var cellType: String = null
+  var cellType: String = _
 
   var rowCellsBuffer: ListBuffer[Cell] = ListBuffer[Cell]()
 
@@ -108,7 +107,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
       val styleAttrIndex = attributes.getValue(styleAttr)
       cellStyleIndex = if (styleAttrIndex != null) {
-        SSMUtils.toInt(attributes.getValue(styleAttr)).getOrElse(-1)
+        toInt(attributes.getValue(styleAttr)).getOrElse(-1)
       } else {
         -1
       }
@@ -179,53 +178,51 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
   def evaluate(rowNum: Int, colNum: Int, typeString: String, stringValue: String, style: CellStyle): Cell =
 
     typeString match {
-      //TODO da correggere, bisogna sistemare tutte le casistiche(vedi sotto per referenza in PDF)
       case "s" | "d" => applyStyle(rowNum, colNum, stringValue, style, isSharedString = true)
-      case "e" => null //TODO da completare
-      case "str" => null //TODO da completare: cell contains a formula
+      case "e" => null //cell contains an excel error
+      case "str" => null //cell contains a formula
       case "inlineStr" | "n" | "b" | null => applyStyle(rowNum, colNum, stringValue, style, isSharedString = false)
       case _ => null
     }
 
   //TODO mancano i boolean
-  def applyStyle(rowNum: Int, colNum: Int, rawVal: String, style: CellStyle, isSharedString: Boolean): Cell = {
+  def applyStyle(row: Int, col: Int, rawVal: String, style: CellStyle, isSharedString: Boolean): Cell = {
 
-    //Lookup into shared string if required
-    val stringValue = if (isSharedString) {
+    val strValue = if (isSharedString) {
       val index = rawVal.toInt
       lookupSharedString(Set(index), xlsxPath).head
     } else {
       rawVal
     }
 
-    val formatCode = if (style != null) {
+    val format = if (style != null) {
       sanitizeFormatCode(style.formatCode)
     } else {
       null
     }
 
-    if (formatCode == null || formatCode == "General" || formatCode == "@" || formatCode == "0") {
+    if (format == null || format == "General" || format == "@" || format == "0") {
 
-      parseInteger(rowNum, colNum, stringValue)
-    } else if (isCharsSubset(formatCode, "0.,#") || formatCode == "#?/?" || formatCode == "#??/??" ||
-      formatCode == "0.00E+00" || formatCode == "##0.0E+0") {
+      parseInteger(row, col, strValue)
+    } else if (isCharsSubset(format, "0.,#") || format == "#?/?" || format == "#??/??" || format == "0.00E+00"
+      || format == "##0.0E+0") {
 
-      parseDouble(rowNum, colNum, stringValue)
-    } else if (isCharsSubset(formatCode, "0.%")) {
+      parseDouble(row, col, strValue)
+    } else if (isCharsSubset(format, "0.%")) {
 
-      parseDouble(rowNum, colNum, stringValue.replace("%", ""))
-    } else if (isCharsSubset(formatCode, "ms:h.0")) {
+      parseDouble(row, col, strValue.replace("%", ""))
+    } else if (isCharsSubset(format, "ms:h.0")) {
 
-      Cell(rowNum, colNum, parseTime(stringValue), CellType.Time)
-    } else if (isCharsSubset(formatCode, "mdy-, /h")) {
+      Cell(row, col, parseTime(strValue), CellType.Time)
+    } else if (isCharsSubset(format, "mdy-, /h")) {
 
-      Cell(rowNum, colNum, parseDateStringWithFormat(stringValue), CellType.Date)
-    } else if (isCharsSubset(formatCode, "\"0,.#$€ ")) {
+      Cell(row, col, parseDateStringWithFormat(strValue), CellType.Date)
+    } else if (isCharsSubset(format, "\"0,.#$€ ")) {
 
-      parseCurrency(rowNum, colNum, stringValue, formatCode)
+      parseCurrency(row, col, strValue, format)
     } else {
       println(s"Unknown style $style")
-      Cell(rowNum, colNum, null, CellType.Unknown)
+      Cell(row, col, null, CellType.Unknown)
     }
   }
 
@@ -305,7 +302,13 @@ object SheetHandler {
   }
 
   def parseTime(timeStr: String): Long = {
-    (toDouble(timeStr).getOrElse(0.0) * 86_400_000L).round
+
+    toDouble(timeStr) match {
+      case Right(time) => (time * 86_400_000L).round
+      case Left(s) =>
+        print(s)
+        0L
+    }
   }
 
   def parseDateStringWithFormat(timeStr: String): Long = {
@@ -379,6 +382,35 @@ object SheetHandler {
       } else {
         temp
       }
+    }
+  }
+
+  def toInt(s: String): Either[String, Int] = {
+
+    try {
+      Right(s.toInt)
+    } catch {
+      case _ : Exception =>
+        Left(s"Unparseable string to Integer with value: $s")
+    }
+  }
+
+  def toDouble(s: String): Either[String, Double] = {
+    try {
+      Right(s.toDouble)
+    } catch {
+      case _ : Exception =>
+        Left(s"Unparseable string to Double with value: $s")
+    }
+  }
+
+  def toLong(s: String): Either[String, Long] = {
+
+    try {
+      Right(s.toLong)
+    } catch {
+      case _: Throwable =>
+        Left(s"Unparseable string to Long with value: $s")
     }
   }
 

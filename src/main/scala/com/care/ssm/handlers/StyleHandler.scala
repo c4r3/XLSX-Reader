@@ -1,6 +1,6 @@
 package com.care.ssm.handlers
 
-import com.care.ssm.SSMUtils._
+import com.care.ssm.handlers.SheetHandler.toInt
 import com.care.ssm.handlers.StyleHandler.{CellStyle, lookupFormatCode}
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler

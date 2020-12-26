@@ -50,32 +50,4 @@ object SSMUtils {
       pair => (pair._1.toInt - 'A'.toInt + 1) * pow(lettersNum, pair._2).toInt
     ).sum
   }
-
-  def toInt(s: String): Either[String, Int] = {
-    try {
-      Right(s.toInt)
-    } catch {
-      case _ : Exception =>
-        Left(s"Unparseable string to Integer with value: $s")
-    }
-  }
-
-  def toDouble(s: String): Either[String, Double] = {
-    try {
-      Right(s.toDouble)
-    } catch {
-      case _ : Exception =>
-        Left(s"Unparseable string to Double with value: $s")
-    }
-  }
-
-  def toLong(s: String): Either[String, Long] = {
-
-    try {
-      Right(s.toLong)
-    } catch {
-      case _: Throwable =>
-        Left(s"Unparseable string to Long with value: $s")
-    }
-  }
 }
