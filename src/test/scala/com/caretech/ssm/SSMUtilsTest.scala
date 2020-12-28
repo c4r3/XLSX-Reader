@@ -1,6 +1,6 @@
-package com.care.ssm
+package com.caretech.ssm
 
-import com.care.ssm.SSMUtils.{calculateColumn, extractStream}
+import SSMUtils.{calculateColumn, extractStream}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

@@ -1,6 +1,7 @@
-package com.care.ssm
+package com.caretech.ssm
 
-import com.care.ssm.handlers.SheetHandler.{Cell, CellType, Row}
+import com.caretech.ssm.handlers.SheetHandler.{Cell, CellType, Row}
+import com.caretech.ssm.handlers.SheetHandler.{CellType, Row}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

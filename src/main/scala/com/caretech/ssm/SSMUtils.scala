@@ -1,4 +1,4 @@
-package com.care.ssm
+package com.caretech.ssm
 
 import java.io.FileInputStream
 import java.lang.Math.pow

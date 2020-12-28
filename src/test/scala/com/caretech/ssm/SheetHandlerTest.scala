@@ -1,7 +1,7 @@
-package com.care.ssm
+package com.caretech.ssm
 
-import com.care.ssm.handlers.SheetHandler
-import com.care.ssm.handlers.SheetHandler._
+import com.caretech.ssm.handlers.SheetHandler._
+import com.caretech.ssm.handlers.SheetHandler
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

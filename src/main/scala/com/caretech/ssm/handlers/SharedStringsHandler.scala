@@ -1,4 +1,4 @@
-package com.care.ssm.handlers
+package com.caretech.ssm.handlers
 
 import org.slf4j
 import org.slf4j.LoggerFactory

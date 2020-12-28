@@ -1,11 +1,11 @@
-package com.care.ssm
+package com.caretech.ssm
 
 import java.lang.Integer.MAX_VALUE
 
-import com.care.ssm.SSMUtils._
-import com.care.ssm.handlers.SheetHandler.Row
-import com.care.ssm.handlers.StyleHandler.CellStyle
-import com.care.ssm.handlers.{BaseHandler, SheetHandler, StyleHandler}
+import SSMUtils._
+import com.caretech.ssm.handlers.{BaseHandler, SheetHandler, StyleHandler}
+import com.caretech.ssm.handlers.SheetHandler.Row
+import com.caretech.ssm.handlers.StyleHandler.CellStyle
 import javax.xml.parsers.SAXParserFactory._
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
 import org.slf4j
