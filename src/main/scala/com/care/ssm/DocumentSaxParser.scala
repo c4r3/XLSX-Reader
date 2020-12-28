@@ -44,8 +44,9 @@ class DocumentSaxParser {
   private def innerZipSheetFilePath(sheetsFolder: String, sheetId: String): String =
     sheetsFolder + "/sheet" + sheetId + ".xml"
 
-  //TODO serve una validazione dei parametri inseriti
-  def readSheet(xlsxPath: String, sheet: String, fromRow: Int = 0, toRow: Int = MAX_VALUE): List[Row] =
+  def readSheet(xlsxPath: String, sheet: String, fromRow: Int = 0, toRow: Int = MAX_VALUE): List[Row] = {
+
+    validateRangeBounds(fromRow, toRow)
 
     lookupSheetIdByName(xlsxPath, sheet) match {
 
@@ -68,6 +69,18 @@ class DocumentSaxParser {
         logger.warn("No sheet available with name {}", sheet)
         List[Row]()
     }
+  }
+
+  private def validateRangeBounds(fromRow: Int, toRow: Int): Unit = {
+
+    if(fromRow<0) throw new IllegalArgumentException("Range lower bound can't be negative")
+    if(toRow<0) throw new IllegalArgumentException("Range upper bound can't be negative")
+    if(toRow<fromRow) throw new IllegalArgumentException("Range upper bound can't be lower than lower one")
+
+    if(fromRow!=0 && toRow != Integer.MAX_VALUE) {
+      logger.debug("Start reading from row {} to {}", fromRow, toRow - 1)
+    }
+  }
 
   private def lookupCellsStyles(xlsxPath: String): List[CellStyle] = {
 
