@@ -2,7 +2,7 @@ organization := "com.c4r3"
 
 name := "XLSX-Reader"
 
-version := "1.0.1-SNAPSHOT"
+version := "1.0.0"
 
 scalaVersion := "2.12.12"
 
