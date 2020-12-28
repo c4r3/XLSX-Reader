@@ -1,4 +1,4 @@
-package com.caretech.ssm.handlers
+package com.c4r3.ssm.handlers
 
 import SheetHandler.toInt
 import StyleHandler.{CellStyle, lookupFormatCode}

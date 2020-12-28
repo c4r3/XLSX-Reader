@@ -1,4 +1,4 @@
-package com.caretech.ssm
+package com.c4r3.ssm
 
 import SSMUtils.{calculateColumn, extractStream}
 import org.scalatest.flatspec.AnyFlatSpec
