@@ -1,3 +1,5 @@
+organization := "com.c4r3"
+
 name := "XLSX-Reader"
 
 version := "1.0.0"
