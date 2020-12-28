@@ -4,9 +4,9 @@ Just a pure Scala XLSX reader. It's aimed to the parsing of XLSX file without an
 
 Base features:
 
-- Read directly from zipstream
+- Read directly from zipstreams
 - Parsing all major excel datatypes
-- Parsing single cells with metadata (ex.: currency meta)
-- It can't manage formulas and excel's errors
+- Parsing cells with metadata (ex.: currency meta)
+- It can't manage formulas and excel errors
 - Range rows reading
-- Date are normalized from 01-01-1970
+- Dates are normalized from 01-01-1970
