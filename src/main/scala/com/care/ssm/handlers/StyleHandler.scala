@@ -2,6 +2,8 @@ package com.care.ssm.handlers
 
 import com.care.ssm.handlers.SheetHandler.toInt
 import com.care.ssm.handlers.StyleHandler.{CellStyle, lookupFormatCode}
+import org.slf4j
+import org.slf4j.LoggerFactory
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
@@ -14,6 +16,8 @@ import scala.collection.mutable.ListBuffer
   * Handler for Shared Strings File
   */
 class StyleHandler extends DefaultHandler{
+
+  val logger: slf4j.Logger = LoggerFactory.getLogger(this.getClass)
 
   val result: ListBuffer[CellStyle] =  ListBuffer[CellStyle]()
 
@@ -109,6 +113,8 @@ class StyleHandler extends DefaultHandler{
 
 object StyleHandler {
 
+  val logger: slf4j.Logger = LoggerFactory.getLogger(StyleHandler.getClass)
+
   case class CellStyle(numFmtId: Int, formatCode: String, isFormatNumberApply: Boolean)
 
   def lookupFormatCode(c : Int): String =
@@ -142,7 +148,7 @@ object StyleHandler {
       case 48 => "##0.0E+0"
       case 49 => "@"
       case _ =>
-        print(s"UNKNOWN numfmtId $c")
+        logger.error("Unknown numfmtId {}", c)
         null
     }
 }

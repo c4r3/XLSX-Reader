@@ -1,5 +1,7 @@
 package com.care.ssm.handlers
 
+import org.slf4j
+import org.slf4j.LoggerFactory
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
@@ -13,6 +15,8 @@ import scala.collection.mutable.ListBuffer
   * @param indexes the required indexes of the strings
   */
 class SharedStringsHandler(indexes: Set[Int] = Set[Int]()) extends DefaultHandler {
+
+  val logger: slf4j.Logger = LoggerFactory.getLogger(this.getClass)
 
   var result: ListBuffer[String] = ListBuffer[String]()
   val targetTag = "t"

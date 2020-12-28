@@ -7,6 +7,8 @@ import com.care.ssm.handlers.SheetHandler.CellType.CellType
 import com.care.ssm.handlers.SheetHandler._
 import com.care.ssm.handlers.StyleHandler.CellStyle
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
+import org.slf4j
+import org.slf4j.LoggerFactory
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
@@ -25,6 +27,8 @@ import scala.util.control.Exception.allCatch
   */
 class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[CellStyle], xlsxPath: String)
   extends DefaultHandler {
+
+  val logger: slf4j.Logger = LoggerFactory.getLogger(this.getClass)
 
   var result: ListBuffer[Row] = ListBuffer[Row]()
 
@@ -63,32 +67,32 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     if (workDone || isNotRequiredRow) return
 
     if (formula.equals(qName)) {
-      print("warning: no formula is supported, check the workbook")
+      logger.warn("warning: no formula is supported, check the workbook")
       return
     }
 
     if (richTextInline.equals(qName)) {
-      print("warning: no rich text inline is supported, check the workbook")
+      logger.warn("warning: no rich text inline is supported, check the workbook")
       return
     }
 
     if (richTextInline.equals(qName)) {
-      print("warning: no future feature data storage area supported, check the workbook")
+      logger.warn("warning: no future feature data storage area supported, check the workbook")
       return
     }
 
     if (cellMetadataIndexAttr.equals(qName)) {
-      print("warning: no cell metadata index attribute area supported, check the workbook")
+      logger.warn("warning: no cell metadata index attribute area supported, check the workbook")
       return
     }
 
     if (showPhoneticAttr.equals(qName)) {
-      print("warning: no phonetic attribute area supported, check the workbook")
+      logger.warn("warning: no phonetic attribute area supported, check the workbook")
       return
     }
 
     if (valueMetadataIndexAttr.equals(qName)) {
-      print("warning: no value metadata index attribute area supported, check the workbook")
+      logger.warn("warning: no value metadata index attribute area supported, check the workbook")
       return
     }
 
@@ -221,7 +225,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
       parseCurrency(row, col, strValue, format)
     } else {
-      println(s"Unknown style $style")
+      logger.error("Unknown style {}", style)
       Cell(row, col, null, CellType.Unknown)
     }
   }
@@ -258,7 +262,6 @@ object SheetHandler {
   }
 
   sealed trait CSVUtilities {
-
     def toCSV: String
   }
 

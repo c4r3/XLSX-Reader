@@ -6,7 +6,10 @@ import com.care.ssm.SSMUtils._
 import com.care.ssm.handlers.SheetHandler.Row
 import com.care.ssm.handlers.StyleHandler.CellStyle
 import com.care.ssm.handlers.{BaseHandler, SheetHandler, StyleHandler}
+import javax.xml.parsers.SAXParserFactory._
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
+import org.slf4j
+import org.slf4j.LoggerFactory
 
 
 /**
@@ -14,7 +17,9 @@ import javax.xml.parsers.{SAXParser, SAXParserFactory}
   */
 class DocumentSaxParser {
 
-  val factory: SAXParserFactory = SAXParserFactory.newInstance
+  val logger: slf4j.Logger = LoggerFactory.getLogger(this.getClass)
+
+  val factory: SAXParserFactory = newInstance
   val parser: SAXParser = factory.newSAXParser
 
   /**
@@ -47,7 +52,7 @@ class DocumentSaxParser {
       case Some(id) =>
 
         val sheetFileName = innerZipSheetFilePath(sheets_folder, id)
-        println(s"Reading sheet file at path $sheetFileName")
+        logger.debug("Reading sheet file at path {}", sheetFileName)
 
         //Style data usually is a small amount of data, so it can be read once
         val stylesList = lookupCellsStyles(xlsxPath)
@@ -60,7 +65,7 @@ class DocumentSaxParser {
         handler.getResult
 
       case _ =>
-        println(s"No sheet available with name $sheet")
+        logger.warn("No sheet available with name {}", sheet)
         List[Row]()
     }
 

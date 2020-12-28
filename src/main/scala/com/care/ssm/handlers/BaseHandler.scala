@@ -1,5 +1,7 @@
 package com.care.ssm.handlers
 
+import org.slf4j
+import org.slf4j.LoggerFactory
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 
@@ -18,6 +20,8 @@ import scala.collection.mutable.ListBuffer
   */
 class BaseHandler(targetTag: String, targetAttribute: String = "", occurrence: Int = -1) extends DefaultHandler {
 
+  val logger: slf4j.Logger = LoggerFactory.getLogger(this.getClass)
+
   var result: ListBuffer[String] = ListBuffer[String]()
   var targetTagStarted = false
   var targetTagEnded = false
@@ -28,16 +32,12 @@ class BaseHandler(targetTag: String, targetAttribute: String = "", occurrence: I
     if (workDone) return
 
     if (qName.equals(targetTag)) {
-      //Starting event of target tag
-      println(s"Start event of element: $qName")
 
+      logger.debug("Start event of element: {}", qName)
       targetTagStarted = true
 
       if (isAttributeRequired) {
-        //Attribute extraction
         result += attributes.getValue(targetAttribute)
-      } else {
-        //the result is the text within the tag
       }
     }
   }
@@ -47,8 +47,7 @@ class BaseHandler(targetTag: String, targetAttribute: String = "", occurrence: I
     if (workDone) return
 
     if (qName.equals(targetTag)) {
-      //Closing event of target tag
-      println(s"End event of element: $qName")
+      logger.debug("End event of element: {}", qName)
     }
   }
 
