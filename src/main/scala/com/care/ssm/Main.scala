@@ -19,7 +19,7 @@ object Main {
     logger.debug("Starting parsing XLSX at path {}", path)
 
     val parser = new DocumentSaxParser
-    val result: List[Row] = parser.readSheet(path, sheet)
-    //result.foreach(println)
+    val result: List[Row] = parser.readSheet(path, sheet, 3, 5)
+    result.foreach(println)
   }
 }

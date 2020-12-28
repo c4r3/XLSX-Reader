@@ -63,8 +63,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
 
-    //TODO controllare, serve solo uno dei due
-    if (workDone || isNotRequiredRow) return
+    if (isNotRequiredRow) return
 
     if (formula.equals(qName)) {
       logger.warn("warning: no formula is supported, check the workbook")
@@ -121,7 +120,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
   }
 
   override def endElement(uri: String, localName: String, qName: String): Unit = {
-    if (workDone || isNotRequiredRow) return
+    if (isNotRequiredRow) return
 
     if (rowTag.equals(qName)) {
       result += Row(rowNum, rowCells.toList)
@@ -134,7 +133,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
   override def characters(ch: Array[Char], start: Int, length: Int): Unit = {
 
-    if (workDone || isNotRequiredRow) return
+    if (isNotRequiredRow) return
 
     if (valueTagStarted) {
 
@@ -249,9 +248,12 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     true
   }
 
-  private def isNotRequiredRow: Boolean = !(rowNum < 0 || (fromRow.toInt <= rowNum && rowNum <= toRow.toInt))
+  private def isNotRequiredRow: Boolean = !isRequiredRow
 
-  private def workDone: Boolean = rowNum > toRow.toInt
+  private def isRequiredRow: Boolean = {
+
+    rowNum < 0 || (fromRow.toInt <= rowNum && rowNum < toRow.toInt)
+  }
 
   def getResult: List[Row] = result.toList
 }
