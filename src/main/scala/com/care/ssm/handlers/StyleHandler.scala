@@ -55,10 +55,10 @@ class StyleHandler extends DefaultHandler{
     }
 
     if(!numFmtsEnded && numFmtTag.equals(qName)) {
-      //Starting numFmt tag
+
       val numFmtId = toInt(attributes.getValue(numFmtIdTag)).getOrElse(-1)
       val formatCode = attributes.getValue(formatCodeTag)
-      //List is filled before the parsing of the style tags
+
       numFormatsList += CellStyle(numFmtId,formatCode, isFormatNumberApply = false)
     }
 

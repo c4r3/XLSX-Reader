@@ -31,6 +31,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
   val logger: slf4j.Logger = LoggerFactory.getLogger(this.getClass)
 
   var result: ListBuffer[Row] = ListBuffer[Row]()
+  var rowCells: ListBuffer[Cell] = ListBuffer[Cell]()
 
   //Child Elements
   val cellTag = "c"
@@ -59,7 +60,6 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
   var cellStyleIndex: Int = -1
   var cellType: String = _
 
-  var rowCellsBuffer: ListBuffer[Cell] = ListBuffer[Cell]()
 
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
 
@@ -124,10 +124,10 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     if (workDone || isNotRequiredRow) return
 
     if (rowTag.equals(qName)) {
-      result += Row(rowNum, rowCellsBuffer.toList)
+      result += Row(rowNum, rowCells.toList)
 
       //reset temp stuff
-      rowCellsBuffer.clear()
+      rowCells.clear()
       rowNum = -1
     }
   }
@@ -147,7 +147,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
       val colNum = calculateColumn(cellXY, rowNum)
       val stringValue = new String(ch, start, length)
-      rowCellsBuffer += evaluate(rowNum, colNum, cellType, stringValue, style)
+      rowCells += evaluate(rowNum, colNum, cellType, stringValue, style)
 
       //Flushing buffer & reset temporary stuff
       valueTagStarted = false
@@ -182,14 +182,20 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
   def evaluate(rowNum: Int, colNum: Int, typeString: String, stringValue: String, style: CellStyle): Cell =
 
     typeString match {
-      case "s" | "d" => applyStyle(rowNum, colNum, stringValue, style, isSharedString = true)
-      case "e" => null //cell contains an excel error
-      case "str" => null //cell contains a formula
-      case "inlineStr" | "n" | "b" | null => applyStyle(rowNum, colNum, stringValue, style, isSharedString = false)
-      case _ => null
+      case "s" | "d" => parseWithStyle(rowNum, colNum, stringValue, style, isSharedString = true)
+      case "e" =>
+        logger.error("XLSX contains excel error cell at ({},{})", rowNum, colNum)
+        null
+      case "str" =>
+        logger.warn("XLSX contains formula cell at ({},{})", rowNum, colNum)
+        null
+      case "inlineStr" | "n" | "b" | null => parseWithStyle(rowNum, colNum, stringValue, style, isSharedString = false)
+      case _ =>
+        logger.warn("XLSX contains unknown cell at ({},{})", rowNum, colNum)
+        null
     }
 
-  def applyStyle(row: Int, col: Int, rawVal: String, style: CellStyle, isSharedString: Boolean): Cell = {
+  def parseWithStyle(row: Int, col: Int, rawVal: String, style: CellStyle, isSharedString: Boolean): Cell = {
 
     val strValue = if (isSharedString) {
       val index = rawVal.toInt
@@ -224,7 +230,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
       parseCurrency(row, col, strValue, format)
     } else {
-      logger.error("Unknown style {}", style)
+      logger.error("Unknown style {} at cell ({},{})", style, row, col)
       Cell(row, col, null, CellType.Unknown)
     }
   }

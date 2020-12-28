@@ -11,9 +11,9 @@ import scala.collection.mutable.ListBuffer
   *
   * @author Massimo Caresana
   *
-  * Ci sono due possibilità dato un tag da ricercare:
-  * - si cerca un attributo
-  * - si cerca il contenuto del tag
+  * There are two choices:
+  * - looking for attribute
+  * - looking for tag's content
   * @param targetTag The target tag
   * @param targetAttribute The target tag's attribute
   * @param occurrence <0 all values
