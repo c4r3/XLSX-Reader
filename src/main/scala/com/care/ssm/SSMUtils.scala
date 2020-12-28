@@ -11,18 +11,18 @@ import java.util.zip.ZipInputStream
   */
 object SSMUtils {
 
-  val content_types = "[Content_Types].xml"
-  val rels = "_rels/.rels"
-  val workbook_rels = "xl/_rels/workbook.xml.rels"
-  val workbook = "xl/workbook.xml"
-  val shared_strings = "xl/sharedStrings.xml"
-  val sheets_rels_folder = "xl/worksheets/_rels"
-  val theme_folder = "xl/theme"
-  val styles = "xl/styles.xml"
-  val sheets_folder = "xl/worksheets"
-  val core = "docProps/core.xml"
-  val printer_settings_folder = "xl/printerSettings"
-  val app = "docProps/app.xml"
+  final val content_types = "[Content_Types].xml"
+  final val rels = "_rels/.rels"
+  final val workbook_rels = "xl/_rels/workbook.xml.rels"
+  final val workbook = "xl/workbook.xml"
+  final val shared_strings = "xl/sharedStrings.xml"
+  final val sheets_rels_folder = "xl/worksheets/_rels"
+  final val theme_folder = "xl/theme"
+  final val styles = "xl/styles.xml"
+  final val sheets_folder = "xl/worksheets"
+  final val core = "docProps/core.xml"
+  final val printer_settings_folder = "xl/printerSettings"
+  final val app = "docProps/app.xml"
 
   def extractStream(xlsxPath: String, required: String): Option[ZipInputStream] = {
 

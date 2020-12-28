@@ -23,9 +23,10 @@ class StyleHandler extends DefaultHandler{
 
   //Target Tags
   val parentTag = "cellXfs"
+  val targetTag = "xf"
+
   var parentTagStarted = false
   var parentTagEnded = false
-  val targetTag = "xf"
   var targetTagEnded = false
 
   //Target attributes
@@ -35,8 +36,9 @@ class StyleHandler extends DefaultHandler{
   //Number formats Tags
   val numFmtsTag = "numFmts"
   val numFmtTag = "numFmt"
-  var numFmtsEnded = false
   val formatCodeTag = "formatCode"
+
+  var numFmtsEnded = false
 
   //Number formats List (defined within <numFmts>)
   var numFormatsList = new ListBuffer[CellStyle]()
@@ -67,8 +69,6 @@ class StyleHandler extends DefaultHandler{
       toInt(attributes.getValue(numFmtIdTag)) match {
         case Right(num) =>
 
-          //Se il numFmtId è presente nella numFormatList allora prendo quel valore, altrimenti significa che è uno
-          // stile standard (definito a priori)
           numFormatsList.find(sCell => sCell.numFmtId == num) match {
 
             case Some(style) => result += CellStyle(style.numFmtId, style.formatCode, isFormatNumberApply)

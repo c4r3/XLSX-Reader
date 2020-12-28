@@ -152,4 +152,40 @@ class ReadingTest extends AnyFlatSpec with Matchers {
 
     expected.close()
   }
+
+  "Reading booleans" should "be ok" in {
+
+    val path = "./src/test/resources/boolean/boolean_1.xlsx"
+    val sheet = "Foglio1"
+
+    val parser = new DocumentSaxParser
+    val result: List[Row] = parser.readSheet(path, sheet)
+
+    result.size should be(5)
+
+    val header = result.head
+    header.cells.size should be(2)
+    header.cells.head should be(Cell(1, 1, "boolean_type", CellType.String, null))
+    header.cells(1) should be(Cell(1, 2, "boolean_type_2", CellType.String, null))
+
+    val first = result(1)
+    first.cells.size should be(2)
+    first.cells.head should be(Cell(2, 1, true, CellType.Boolean, null))
+    first.cells(1) should be(Cell(2, 2, true, CellType.Boolean, null))
+
+    val second = result(2)
+    second.cells.size should be(2)
+    second.cells.head should be(Cell(3, 1, false, CellType.Boolean, null))
+    second.cells(1) should be(Cell(3, 2, false, CellType.Boolean, null))
+
+    val third = result(3)
+    third.cells.size should be(2)
+    third.cells.head should be(Cell(4, 1, true, CellType.Boolean, null))
+    third.cells(1) should be(Cell(4, 2, false, CellType.Boolean, null))
+
+    val fourth = result(4)
+    fourth.cells.size should be(2)
+    fourth.cells.head should be(Cell(5, 1, false, CellType.Boolean, null))
+    fourth.cells(1) should be(Cell(5, 2, true, CellType.Boolean, null))
+  }
 }

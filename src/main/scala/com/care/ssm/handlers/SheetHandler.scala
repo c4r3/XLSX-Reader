@@ -189,7 +189,6 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
       case _ => null
     }
 
-  //TODO mancano i boolean
   def applyStyle(row: Int, col: Int, rawVal: String, style: CellStyle, isSharedString: Boolean): Cell = {
 
     val strValue = if (isSharedString) {
@@ -207,7 +206,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
     if (format == null || format == "General" || format == "@" || format == "0") {
 
-      parseInteger(row, col, strValue)
+      parse(row, col, strValue)
     } else if (isCharsSubset(format, "0.,#") || format == "#?/?" || format == "#??/??" || format == "0.00E+00"
       || format == "##0.0E+0") {
 
@@ -258,7 +257,7 @@ object SheetHandler {
 
   object CellType extends Enumeration {
     type CellType = Value
-    val Integer, Double, Long, String, Currency, Time, Date, Unknown = Value
+    val Integer, Double, Long, Boolean, String, Currency, Time, Date, Unknown = Value
   }
 
   sealed trait CSVUtilities {
@@ -324,6 +323,15 @@ object SheetHandler {
     }
   }
 
+  def parseBoolean(rowNum: Int, colNum: Int, strValue: String): Cell = {
+    toBoolean(strValue) match {
+      case Right(d) => Cell(rowNum, colNum, d, CellType.Boolean)
+      case Left(s) =>
+        print(s)
+        Cell(rowNum, colNum, strValue, CellType.String)
+    }
+  }
+
   def parseDouble(rowNum: Int, colNum: Int, strValue: String): Cell = {
     toDouble(strValue) match {
       case Right(d) => Cell(rowNum, colNum, d, CellType.Double)
@@ -333,7 +341,7 @@ object SheetHandler {
     }
   }
 
-  def parseInteger(rowNum: Int, colNum: Int, strValue: String): Cell = {
+  def parse(rowNum: Int, colNum: Int, strValue: String): Cell = {
 
     if (isInt(strValue)) {
 
@@ -341,6 +349,9 @@ object SheetHandler {
     } else if (isDouble(strValue)) {
 
       parseDouble(rowNum, colNum, strValue)
+    } else if (isBoolean(strValue)) {
+
+      parseBoolean(rowNum, colNum, strValue)
     } else {
 
       Cell(rowNum, colNum, strValue, CellType.String)
@@ -407,6 +418,15 @@ object SheetHandler {
     }
   }
 
+  def toBoolean(s: String): Either[String, Boolean] = {
+    try {
+      Right(s.toBoolean)
+    } catch {
+      case _ : Exception =>
+        Left(s"Unparseable string to Boolean with value: $s")
+    }
+  }
+
   def toLong(s: String): Either[String, Long] = {
 
     try {
@@ -420,4 +440,6 @@ object SheetHandler {
   def isInt(s: String): Boolean = (allCatch opt s.toInt).isDefined
 
   def isDouble(s: String): Boolean = (allCatch opt s.toDouble).isDefined
+
+  def isBoolean(s: String): Boolean = (allCatch opt s.toBoolean).isDefined
 }
