@@ -48,6 +48,39 @@ class ReadingTest extends AnyFlatSpec with Matchers {
     last.cells(4) should be (Cell(391,5,3195.699054497647, CellType.Currency, Map("sign" -> "$")))
   }
 
+  it should "be ok with range rows reading" in {
+
+    val path = "./src/test/resources/sample_1/sample.xlsx"
+    val sheet = "sheet1"
+
+    val parser = new DocumentSaxParser
+    val result: List[Row] = parser.readSheet(path, sheet, 0, 4)
+
+    result.size should be(3)
+
+    val header = result.head
+    header.cells.size should be(5)
+    header.cells.head should be(Cell(1, 1, "Postcode", CellType.String, null))
+    header.cells(1) should be(Cell(1, 2, "Sales_Rep_ID", CellType.String, null))
+    header.cells(2) should be(Cell(1, 3, "Sales_Rep_Name", CellType.String, null))
+    header.cells(3) should be(Cell(1, 4, "Year", CellType.String, null))
+    header.cells(4) should be(Cell(1, 5, "Value", CellType.String, null))
+
+    val first = result(1)
+    first.cells.head should be(Cell(2, 1, 2121, CellType.Integer, null))
+    first.cells(1) should be(Cell(2, 2, 456, CellType.Integer, null))
+    first.cells(2) should be(Cell(2, 3, "Jane", CellType.String, null))
+    first.cells(3) should be(Cell(2, 4, 2011, CellType.Integer, null))
+    first.cells(4) should be(Cell(2, 5, 84219.497310686638, CellType.Currency, Map("sign" -> "$")))
+
+    val second = result(2)
+    second.cells.head should be(Cell(3, 1, 2092, CellType.Integer, null))
+    second.cells(1) should be(Cell(3, 2, 789, CellType.Integer, null))
+    second.cells(2) should be(Cell(3, 3, "Ashish", CellType.String, null))
+    second.cells(3) should be(Cell(3, 4, 2012, CellType.Integer, null))
+    second.cells(4) should be(Cell(3, 5, 28322.19226785212, CellType.Currency, Map("sign" -> "$")))
+  }
+
   "Reading Doubles" should "be ok" in {
 
     val path = "./src/test/resources/doubles/doubles.xlsx"

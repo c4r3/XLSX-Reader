@@ -55,13 +55,18 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
   var valueTagStarted = false
 
   //Temporary variables
-  var rowNum: Int = -1
+  var rowNum: Int = 0
   var cellXY = ""
   var cellStyleIndex: Int = -1
   var cellType: String = _
 
 
   override def startElement(uri: String, localName: String, qName: String, attributes: Attributes): Unit = {
+
+    if (rowTag.equals(qName)) {
+      val rawRowNumValue = attributes.getValue(rowNumAttr)
+      rowNum = valueOf(rawRowNumValue)
+    }
 
     if (isNotRequiredRow) return
 
@@ -95,11 +100,6 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
       return
     }
 
-    if (rowTag.equals(qName)) {
-      val rawRowNumValue = attributes.getValue(rowNumAttr)
-      rowNum = valueOf(rawRowNumValue)
-    }
-
     if (valueTag.equals(qName)) {
       valueTagStarted = true
     }
@@ -125,9 +125,8 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
     if (rowTag.equals(qName)) {
       result += Row(rowNum, rowCells.toList)
 
-      //reset temp stuff
+      //reset temporary stuff
       rowCells.clear()
-      rowNum = -1
     }
   }
 
@@ -250,10 +249,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
   private def isNotRequiredRow: Boolean = !isRequiredRow
 
-  private def isRequiredRow: Boolean = {
-
-    rowNum < 0 || (fromRow.toInt <= rowNum && rowNum < toRow.toInt)
-  }
+  private def isRequiredRow: Boolean = rowNum < 0 || (fromRow.toInt <= rowNum && rowNum < toRow.toInt)
 
   def getResult: List[Row] = result.toList
 }
