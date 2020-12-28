@@ -1,6 +1,7 @@
 # XLSX-Reader
-XLSX-Reader
-Just a pure Scala XLSX reader. It's aimed at parsing of XLSX file without any other libraries (i.e. no POI Stuff here).
+
+Just a pure Scala XLSX reader for the famous office suite spreadsheets generator. 
+It's aimed at parsing of XLSX file without any other libraries (i.e. no POI Stuff here).
 
 Base features:
 
