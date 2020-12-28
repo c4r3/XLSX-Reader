@@ -1,8 +1,8 @@
-name := "SpreadSheetManager"
+name := "XLSX-Reader"
 
-version := "0.1"
+version := "1.0.0"
 
-scalaVersion := "2.13.1"
+scalaVersion := "2.12.12"
 
 libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-xml" % "1.3.0",

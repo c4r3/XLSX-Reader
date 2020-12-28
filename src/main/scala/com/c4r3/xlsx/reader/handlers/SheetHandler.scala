@@ -228,7 +228,7 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
       parseCurrency(row, col, strValue, format)
     } else {
-      logger.error("Unknown style {} at cell ({},{})", style, row, col)
+      logger.error("Unknown style {} at cell ({},{})", style.formatCode, row.toString, col.toString)
       Cell(row, col, null, CellType.Unknown)
     }
   }
@@ -256,8 +256,8 @@ class SheetHandler(fromRow: Int = 0, toRow: Int = MAX_VALUE, stylesList: List[Ce
 
 object SheetHandler {
 
-  final val MILLIS_IN_DAY = 86_400_000L
-  final val DAYS_FROM_0_1_1900 = 25_569.0
+  final val MILLIS_IN_DAY = 86400000L
+  final val DAYS_FROM_0_1_1900 = 25569.0
 
   object CellType extends Enumeration {
     type CellType = Value
@@ -310,7 +310,7 @@ object SheetHandler {
   def parseTime(timeStr: String): Long = {
 
     toDouble(timeStr) match {
-      case Right(time) => (time * 86_400_000L).round
+      case Right(time) => (time * MILLIS_IN_DAY).round
       case Left(s) =>
         print(s)
         0L
