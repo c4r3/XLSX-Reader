@@ -10,3 +10,10 @@ Base features:
 - It can't manage formulas and excel errors
 - Range rows reading
 - Dates are normalized from 01-01-1970
+
+Simple use, just create the parser instance and read the target sheet:
+
+```
+  val parser = new XLSXParser
+  val result: List[Row] = parser.readSheet(path, sheet, 0, 5)
+```
