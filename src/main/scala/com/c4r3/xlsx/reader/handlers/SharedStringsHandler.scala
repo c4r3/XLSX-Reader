@@ -1,4 +1,4 @@
-package com.c4r3.ssm.handlers
+package com.c4r3.xlsx.reader.handlers
 
 import org.slf4j
 import org.slf4j.LoggerFactory
@@ -9,7 +9,7 @@ import scala.collection.mutable.ListBuffer
 
 /**
   *
-  * @author Massimo Caresana
+  * @author C4r3
   *
   * Handler for Shared Strings File
   * @param indexes the required indexes of the strings

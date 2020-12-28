@@ -1,11 +1,11 @@
-package com.c4r3.ssm
+package com.c4r3.xlsx.reader
 
 import java.lang.Integer.MAX_VALUE
 
-import SSMUtils._
-import com.c4r3.ssm.handlers.{BaseHandler, SheetHandler, StyleHandler}
-import com.c4r3.ssm.handlers.SheetHandler.Row
-import com.c4r3.ssm.handlers.StyleHandler.CellStyle
+import XLSXUtils._
+import com.c4r3.xlsx.reader.handlers.{BaseHandler, SheetHandler, StyleHandler}
+import com.c4r3.xlsx.reader.handlers.SheetHandler.Row
+import com.c4r3.xlsx.reader.handlers.StyleHandler.CellStyle
 import javax.xml.parsers.SAXParserFactory._
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
 import org.slf4j
@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory
 
 
 /**
-  * @author Massimo Caresana
+  * @author C4r3
   */
-class DocumentSaxParser {
+class XLSXParser {
 
   val logger: slf4j.Logger = LoggerFactory.getLogger(this.getClass)
 

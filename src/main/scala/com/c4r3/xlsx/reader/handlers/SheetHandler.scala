@@ -1,8 +1,8 @@
-package com.c4r3.ssm.handlers
+package com.c4r3.xlsx.reader.handlers
 
 import java.lang.Integer._
 
-import com.c4r3.ssm.SSMUtils._
+import com.c4r3.xlsx.reader.XLSXUtils._
 import SheetHandler.CellType.CellType
 import SheetHandler._
 import StyleHandler.CellStyle
@@ -18,7 +18,7 @@ import scala.util.control.Exception.allCatch
 
 /**
   *
-  * @author Massimo Caresana
+  * @author C4r3
   *
   *         Handler for Shared Strings File
   * @param fromRow    Start reading from this zero-based index

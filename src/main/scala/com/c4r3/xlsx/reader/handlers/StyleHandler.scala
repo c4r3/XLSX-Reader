@@ -1,4 +1,4 @@
-package com.c4r3.ssm.handlers
+package com.c4r3.xlsx.reader.handlers
 
 import SheetHandler.toInt
 import StyleHandler.{CellStyle, lookupFormatCode}
@@ -11,7 +11,7 @@ import scala.collection.mutable.ListBuffer
 
 /**
   *
-  * @author Massimo Caresana
+  * @author C4r3
   *
   * Handler for Shared Strings File
   */

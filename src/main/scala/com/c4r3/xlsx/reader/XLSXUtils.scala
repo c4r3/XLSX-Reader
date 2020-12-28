@@ -1,4 +1,4 @@
-package com.c4r3.ssm
+package com.c4r3.xlsx.reader
 
 import java.io.FileInputStream
 import java.lang.Math.pow
@@ -7,9 +7,9 @@ import java.util.zip.ZipInputStream
 
 
 /**
-  * @author Massimo Caresana
+  * @author C4r3
   */
-object SSMUtils {
+object XLSXUtils {
 
   final val content_types = "[Content_Types].xml"
   final val rels = "_rels/.rels"

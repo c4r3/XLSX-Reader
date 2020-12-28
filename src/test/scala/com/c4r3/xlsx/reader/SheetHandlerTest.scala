@@ -1,7 +1,6 @@
-package com.c4r3.ssm
+package com.c4r3.xlsx.reader
 
-import com.c4r3.ssm.handlers.SheetHandler
-import SheetHandler._
+import com.c4r3.xlsx.reader.handlers.SheetHandler.{lookupSharedString, sanitizeFormatCode}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -27,13 +26,13 @@ class SheetHandlerTest extends AnyFlatSpec with Matchers {
 
     result_1 should be (expected)
 
-
     val result_2: List[String] = lookupSharedString(Set[Int](0,1,2), "./src/test/resources/sample_1/sample.xlsx")
     result_2 should have size 3
     result_2 should be (List[String]("2000","2007","2008"))
 
 
-    val result_3: List[String] = lookupSharedString(Set[Int](129,130,131,132,133,134,135,136,137), "./src/test/resources/sample_1/sample.xlsx")
+    val result_3: List[String] = lookupSharedString(Set[Int](129,130,131,132,133,134,135,136,137),
+      "./src/test/resources/sample_1/sample.xlsx")
     result_3 should have size 9
     result_3 should be (List[String]("2129","Postcode","Sales_Rep_ID","Sales_Rep_Name","John","Ashish","Jane",
       "Year","Value"))

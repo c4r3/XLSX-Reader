@@ -1,10 +1,10 @@
-package com.c4r3.ssm
+package com.c4r3.xlsx.reader
 
-import SSMUtils.{calculateColumn, extractStream}
+import XLSXUtils.{calculateColumn, extractStream}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class SSMUtilsTest extends AnyFlatSpec with Matchers {
+class XLSXUtilsTest extends AnyFlatSpec with Matchers {
 
   "column calculation" should " be correct " in {
 
@@ -15,7 +15,7 @@ class SSMUtilsTest extends AnyFlatSpec with Matchers {
 
   "The zipstream " should " be correct" in {
 
-    val result = extractStream("./src/test/resources/sample_1/sample.xlsx", SSMUtils.workbook)
+    val result = extractStream("./src/test/resources/sample_1/sample.xlsx", XLSXUtils.workbook)
     result should not be null
     result.isDefined should be (true)
     result.get.available should be (1)

@@ -1,17 +1,15 @@
-package com.c4r3.ssm
+package com.c4r3.xlsx.reader
 
-import com.c4r3.ssm.handlers.SheetHandler.Row
-import com.c4r3.ssm.handlers.SheetHandler.Row
-import com.c4r3.ssm.handlers.SheetHandler.Row
+import com.c4r3.xlsx.reader.handlers.SheetHandler.Row
 import org.slf4j
 import org.slf4j.LoggerFactory
 
 /**
-  * @author Massimo Caresana
+  * @author C4r3
   */
-object Main {
+object ReaderMain {
 
-  val logger: slf4j.Logger = LoggerFactory.getLogger(Main.getClass)
+  val logger: slf4j.Logger = LoggerFactory.getLogger(ReaderMain.getClass)
 
   def main(args: Array[String]): Unit = {
 
@@ -20,7 +18,7 @@ object Main {
 
     logger.debug("Starting parsing XLSX at path {}", path)
 
-    val parser = new DocumentSaxParser
+    val parser = new XLSXParser
     val result: List[Row] = parser.readSheet(path, sheet, 0, 5)
     result.foreach(println)
   }

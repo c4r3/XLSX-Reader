@@ -1,8 +1,9 @@
-package com.c4r3.ssm
+package com.c4r3.xlsx.reader
 
-import com.c4r3.ssm.handlers.SheetHandler.{CellType, Row}
-import com.c4r3.ssm.handlers.SheetHandler.{Cell, CellType, Row}
-import com.c4r3.ssm.handlers.SheetHandler.{CellType, Row}
+import com.c4r3.xlsx.reader.handlers.SheetHandler.{CellType, Row}
+import com.c4r3.xlsx.reader.handlers.SheetHandler.{Cell, CellType, Row}
+import com.c4r3.xlsx.reader.handlers.SheetHandler.{CellType, Row}
+import com.c4r3.xlsx.reader.handlers.SheetHandler.{CellType, Row}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -15,7 +16,7 @@ class ReadingTest extends AnyFlatSpec with Matchers {
     val path = "./src/test/resources/sample_1/sample.xlsx"
     val sheet = "sheet1"
 
-    val parser = new DocumentSaxParser
+    val parser = new XLSXParser
     val result: List[Row] = parser.readSheet(path, sheet)
 
     result.size should be (391)
@@ -55,7 +56,7 @@ class ReadingTest extends AnyFlatSpec with Matchers {
     val path = "./src/test/resources/sample_1/sample.xlsx"
     val sheet = "sheet1"
 
-    val parser = new DocumentSaxParser
+    val parser = new XLSXParser
     val result: List[Row] = parser.readSheet(path, sheet, 0, 4)
 
     result.size should be(3)
@@ -88,7 +89,7 @@ class ReadingTest extends AnyFlatSpec with Matchers {
     val path = "./src/test/resources/doubles/doubles.xlsx"
     val sheet = "Foglio1"
 
-    val parser = new DocumentSaxParser
+    val parser = new XLSXParser
     val result: List[Row] = parser.readSheet(path, sheet)
 
     result.size should be (12)
@@ -147,7 +148,7 @@ class ReadingTest extends AnyFlatSpec with Matchers {
     val path = "./src/test/resources/sample_2/sample_2.xlsx"
     val sheet = "mix"
 
-    val parser = new DocumentSaxParser
+    val parser = new XLSXParser
     val result: List[Row] = parser.readSheet(path, sheet)
 
     result.size should be(15)
@@ -193,7 +194,7 @@ class ReadingTest extends AnyFlatSpec with Matchers {
     val path = "./src/test/resources/boolean/boolean_1.xlsx"
     val sheet = "Foglio1"
 
-    val parser = new DocumentSaxParser
+    val parser = new XLSXParser
     val result: List[Row] = parser.readSheet(path, sheet)
 
     result.size should be(5)
