@@ -18,6 +18,10 @@ Base features:
 Simple use, just create the parser instance and read the target sheet:
 
 ```
+  val path = "/your/path/to/file.xlsx"
+  val sheet = "Sheet_1"
+  val fromRow = 0
+  val toRow = 5
   val parser = new XLSXParser
-  val result: List[Row] = parser.readSheet(path, sheet, 0, 5)
+  val result: List[Row] = parser.readSheet(path, sheet, fromRow, toRow)
 ```
