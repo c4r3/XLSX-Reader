@@ -1,3 +1,5 @@
+https://img.shields.io/github/license/c4r3/XLSX-Reader
+
 # XLSX-Reader (100% Scala Excel files reader)
 
 Just a pure Scala XLSX reader for the famous office suite spreadsheets generator. 
