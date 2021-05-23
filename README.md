@@ -1,4 +1,4 @@
-https://img.shields.io/github/license/c4r3/XLSX-Reader
+![Apache-2 License](https://img.shields.io/github/license/c4r3/XLSX-Reader)
 
 # XLSX-Reader (100% Scala Excel files reader)
 
