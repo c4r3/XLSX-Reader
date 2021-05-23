@@ -1,4 +1,6 @@
 [![Apache-2 License](https://img.shields.io/github/license/c4r3/XLSX-Reader)](https://github.com/c4r3/XLSX-Reader/blob/master/LICENSE.md)
+[![Build Status](https://travis-ci.com/c4r3/XLSX-Reader.svg?branch=master)](https://travis-ci.com/c4r3/XLSX-Reader)
+[![codecov](https://codecov.io/gh/c4r3/XLSX-Reader/branch/master/graph/badge.svg)](https://codecov.io/gh/c4r3/XLSX-Reader)
 
 # XLSX-Reader (100% Scala Excel files reader)
 
